@@ -18,6 +18,8 @@ main.obj: ../screenDrawTask.h
 main.obj: C:/Users/Brook/workspace_v6_1_3/FRT/include/queue.h
 main.obj: C:/Users/Brook/workspace_v6_1_3/FRT/include/queue.h
 main.obj: C:/StellarisWare/driverlib/adc.h
+main.obj: C:/StellarisWare/driverlib/gpio.h
+main.obj: C:/StellarisWare/driverlib/pin_map.h
 main.obj: C:/StellarisWare/driverlib/sysctl.h
 main.obj: ../demo_code/basic_io.h
 
@@ -39,5 +41,7 @@ C:/StellarisWare/boards/ek-lm3s1968/drivers/rit128x96x4.h:
 C:/Users/Brook/workspace_v6_1_3/FRT/include/queue.h: 
 C:/Users/Brook/workspace_v6_1_3/FRT/include/queue.h: 
 C:/StellarisWare/driverlib/adc.h: 
+C:/StellarisWare/driverlib/gpio.h: 
+C:/StellarisWare/driverlib/pin_map.h: 
 C:/StellarisWare/driverlib/sysctl.h: 
 ../demo_code/basic_io.h: 
