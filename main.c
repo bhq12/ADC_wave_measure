@@ -102,7 +102,7 @@ int main( void )
 
 	//xTaskCreate( pollADCTask, "Task 2", 240, &adcVal, 1, NULL );
 	//xTaskCreate( makeNoiseTask, "Task 3", 240, (void*)NULL, 1, NULL );
-	xTaskCreate( queueTestTask, "Task 3", 240, (void*)NULL, 1, NULL );
+	xTaskCreate( pollADCTask, "Task 3", 240, (void*)NULL, 1, NULL );
 
 	/* Start the scheduler so our tasks start executing. */
 	vTaskStartScheduler();	

@@ -9,6 +9,7 @@
 #include "FreeRTOS.h"
 #include "queue.h"
 extern xQueueHandle xADCQueue;
+static unsigned long sample[1];
 
 void screenDrawTask( )
 {
@@ -25,11 +26,11 @@ void screenDrawTask( )
 	{
 		xStatus = xQueueReceive(xADCQueue, &adcVal, xTicksToWait);
 		//*adcVal++;
-		char adcsample [50];
+		char adcsample [100];
 
 
 
-		int n=sprintf (adcsample, "this is a test%d                     ", adcVal);
+		int n=sprintf (adcsample, "this is a test%lu                     ", adcVal);
 //		if((int*)isHigh){
 			RIT128x96x4StringDraw(adcsample, 10, 10, 'm');
 //			RIT128x96x4StringDraw("                         ", 10, 50, 'm');
@@ -102,14 +103,18 @@ void makeNoiseTask( void *pvParameters )
 
 void pollADCTask(){
 
-	unsigned long adcVal;
-	ADCProcessorTrigger(ADC0_BASE, 3);
+	sample[0] = 0ul;
+	while(true){
 
-	while(!ADCIntStatus(ADC0_BASE, 3, false))
-	{
+		ADCProcessorTrigger(ADC0_BASE, 3);
+
+		while(!ADCIntStatus(ADC0_BASE, 3, false))
+		{
+		}
+		ADCSequenceDataGet(ADC0_BASE, 0, sample);
+		unsigned long value = sample[0];
+		xQueueSend(xADCQueue, &value, 10);
 	}
-	ADCSequenceDataGet(ADC0_BASE, 0, &adcVal);
-
 }
 
 
