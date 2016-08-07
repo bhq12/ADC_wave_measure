@@ -18,7 +18,7 @@ void screenDrawTask( )
 	const portTickType xTicksToWait = 100 / portTICK_RATE_MS;
 	/* The string to print out is passed in via the parameter.  Cast this to a
 	character pointer. */
-	int adcVal = 0;
+	unsigned long adcVal = 0ul;
 
 	/* As per most tasks, this task is implemented in an infinite loop. */
 	for( ;; )
@@ -100,36 +100,21 @@ void makeNoiseTask( void *pvParameters )
 	}
 }
 
-void pollADCTask( unsigned long *adcVal){
+void pollADCTask(){
 
-	unsigned long ulValue;
-	//
-	// Enable the first sample sequence to capture the value of channel 0 when
-	// the processor trigger occurs.
-	//
-	ADCSequenceConfigure(ADC0_BASE, 0, ADC_TRIGGER_PROCESSOR, 0);
-	ADCSequenceStepConfigure(ADC0_BASE, 0, 0, ADC_CTL_IE | ADC_CTL_END | ADC_CTL_CH0);
-	ADCSequenceEnable(ADC0_BASE, 0);
-	//
-	// Trigger the sample sequence.
-	//
-	ADCProcessorTrigger(ADC0_BASE, 0);
-	//
-	// Wait until the sample sequence has completed.
-	//
+	unsigned long adcVal;
+	ADCProcessorTrigger(ADC0_BASE, 3);
 
-
-	while(!ADCIntStatus(ADC0_BASE, 0, false)) { }
-		//
-		// Read the value from the ADC.
-		//
-	ADCSequenceDataGet(ADC0_BASE, 0, adcVal);
+	while(!ADCIntStatus(ADC0_BASE, 3, false))
+	{
+	}
+	ADCSequenceDataGet(ADC0_BASE, 0, &adcVal);
 
 }
 
 
 void queueTestTask( unsigned long *adcVal){
-	int i = 0;
+	unsigned long i = 0ul;
 	while(1){
 		if(xADCQueue){
 
@@ -138,7 +123,7 @@ void queueTestTask( unsigned long *adcVal){
 				i++;
 			}
 			else{
-				i = 0;
+				i = 0ul;
 			}
 
 			//int j;
