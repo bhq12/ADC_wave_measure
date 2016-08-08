@@ -62,7 +62,8 @@ defined const and off the stack to ensure they remain valid when the tasks are
 executing. */
 const char *pcTextForTask1 = "Task 1";
 const char *pcTextForTask2 = "Task 2";
-xQueueHandle xADCQueue;
+xQueueHandle xADCQueue0;
+xQueueHandle xADCQueue1;
 
 /*-----------------------------------------------------------*/
 
@@ -73,18 +74,8 @@ int main( void )
 	whereas some older eval boards used 6MHz. */
 	SysCtlClockSet( SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_8MHZ );
 
-	xADCQueue = xQueueCreate(1000, sizeof (unsigned long));
-
-
-
-//	ADCSequenceConfigure(ADC0_BASE, 0, ADC_TRIGGER_PROCESSOR, 0);
-//	ADCSequenceStepConfigure(ADC0_BASE, 0, 0, ADC_CTL_IE | ADC_CTL_END | ADC_CTL_CH0);
-//	ADCSequenceEnable(ADC0_BASE, 0);
-
-
-
-
-
+	xADCQueue0 = xQueueCreate(500, sizeof (unsigned long));
+	xADCQueue1 = xQueueCreate(500, sizeof (unsigned long));
 
 
 

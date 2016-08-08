@@ -8,7 +8,8 @@
 #include "driverlib/adc.h"
 #include "FreeRTOS.h"
 #include "queue.h"
-extern xQueueHandle xADCQueue;
+extern xQueueHandle xADCQueue0;
+extern xQueueHandle xADCQueue1;
 
 
 void screenDrawTask( )
@@ -19,20 +20,25 @@ void screenDrawTask( )
 	const portTickType xTicksToWait = 100 / portTICK_RATE_MS;
 	/* The string to print out is passed in via the parameter.  Cast this to a
 	character pointer. */
-	unsigned long adcVal = 0ul;
+	unsigned long adc0Val = 2ul;
+	unsigned long adc1Val = 2ul;
 
 	/* As per most tasks, this task is implemented in an infinite loop. */
 	for( ;; )
 	{
-		xStatus = xQueueReceive(xADCQueue, &adcVal, xTicksToWait);
+		xStatus = xQueueReceive(xADCQueue0, &adc0Val, xTicksToWait);
+		xStatus = xQueueReceive(xADCQueue1, &adc1Val, xTicksToWait);
 		//*adcVal++;
-		char adcsample [100];
+		char adc0Message [25];
+		char adc1Message [25];
 
 
 
-		int n=sprintf (adcsample, "this is a test%lu                     ", adcVal);
+		int n=sprintf (adc0Message, "ADC0 val: %lu   ", adc0Val);
+		int m=sprintf (adc1Message, "ADC1 val: %lu   ", adc1Val);
 //		if((int*)isHigh){
-			RIT128x96x4StringDraw(adcsample, 10, 10, 'm');
+			RIT128x96x4StringDraw(adc0Message, 10, 10, 'm');
+			RIT128x96x4StringDraw(adc1Message, 10, 50, 'm');
 //			RIT128x96x4StringDraw("                         ", 10, 50, 'm');
 //		}
 //		else{
@@ -140,6 +146,7 @@ void pollADCTask(){
 	initialiseADC();
 	unsigned long sample[4];
 	sample[0] = 108ul;
+	sample[1] = 108ul;
 	while(true){
 
 		//Triggers an ADC sampling, using sequence number 2
@@ -151,8 +158,15 @@ void pollADCTask(){
 
 		//Obtain the sample
 		ADCSequenceDataGet(ADC0_BASE, 2, sample);
-		unsigned long value = (unsigned long)sample[0];
-		xQueueSend(xADCQueue, &value, 10);
+		unsigned long valueAdc0 = (unsigned long)sample[0];
+		unsigned long valueAdc1 = (unsigned long)sample[1];
+
+		xQueueSend(xADCQueue0, &valueAdc0, 10);
+
+
+		xQueueSend(xADCQueue1, &valueAdc1, 10);
+
+
 	}
 }
 
@@ -160,9 +174,9 @@ void pollADCTask(){
 void queueTestTask( unsigned long *adcVal){
 	unsigned long i = 0ul;
 	while(1){
-		if(xADCQueue){
+		if(xADCQueue0){
 
-			xQueueSend(xADCQueue, &i, 10);
+			xQueueSend(xADCQueue0, &i, 10);
 			if(i < 100){
 				i++;
 			}
