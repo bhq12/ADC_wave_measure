@@ -47,8 +47,6 @@ void screenDrawTask( )
 //		}
 
 
-
-
 		/* Delay for a period. */
 		//for( ul = 0; ul < 0xfffff; ul++ )
 		//{

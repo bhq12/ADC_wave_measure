@@ -65,6 +65,41 @@ const char *pcTextForTask2 = "Task 2";
 xQueueHandle xADCQueue0;
 xQueueHandle xADCQueue1;
 
+//*****************************************************************************
+//
+//  Function to initialise the buttons for reading
+//
+//*****************************************************************************
+void initButton(void){
+
+    SysCtlPeripheralEnable (SYSCTL_PERIPH_GPIOB);
+    SysCtlPeripheralEnable (SYSCTL_PERIPH_GPIOG);
+
+    GPIOPadConfigSet (GPIO_PORTB_BASE, GPIO_PIN_1, GPIO_STRENGTH_2MA,
+           GPIO_PIN_TYPE_STD_WPU);
+
+    GPIOPadConfigSet (GPIO_PORTB_BASE, GPIO_PIN_2, GPIO_STRENGTH_2MA,
+           GPIO_PIN_TYPE_STD_WPU);
+
+    GPIOPadConfigSet (GPIO_PORTB_BASE, GPIO_PIN_3, GPIO_STRENGTH_2MA,
+           GPIO_PIN_TYPE_STD_WPU);
+
+    GPIOPadConfigSet (GPIO_PORTB_BASE, GPIO_PIN_4, GPIO_STRENGTH_2MA,
+       GPIO_PIN_TYPE_STD_WPU);
+
+
+    GPIOPadConfigSet (GPIO_PORTB_BASE, GPIO_PIN_5, GPIO_STRENGTH_2MA,
+       GPIO_PIN_TYPE_STD_WPU);
+
+    GPIOPadConfigSet (GPIO_PORTB_BASE, GPIO_PIN_6, GPIO_STRENGTH_2MA,
+       GPIO_PIN_TYPE_STD_WPU);
+
+    GPIOPadConfigSet (GPIO_PORTG_BASE, GPIO_PIN_7, GPIO_STRENGTH_2MA,
+       GPIO_PIN_TYPE_STD_WPU);
+
+
+}
+
 /*-----------------------------------------------------------*/
 
 int main( void )
@@ -73,9 +108,9 @@ int main( void )
 	/* Set the clocking to run from the PLL at 50 MHz.  Assumes 8MHz XTAL,
 	whereas some older eval boards used 6MHz. */
 	SysCtlClockSet( SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_8MHZ );
-
-	xADCQueue0 = xQueueCreate(500, sizeof (unsigned long));
-	xADCQueue1 = xQueueCreate(500, sizeof (unsigned long));
+	initButton();
+	xADCQueue0 = xQueueCreate(10, sizeof (unsigned long));
+	xADCQueue1 = xQueueCreate(10, sizeof (unsigned long));
 
 
 
