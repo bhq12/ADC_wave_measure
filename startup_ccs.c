@@ -22,6 +22,18 @@
 //
 //*****************************************************************************
 #include <stdint.h>
+/* Stellaris library includes. */
+#include "inc\hw_types.h"
+#include "inc\hw_memmap.h"
+#include "screenDrawTask.h"
+#include "hw_ints.h"
+#include "driverlib/gpio.h"
+#include "driverlib/interrupt.h"
+
+
+/* Demo includes. */
+#include "demo_code\basic_io.h"
+#define BUTTON_PINS GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7
 //*****************************************************************************
 //
 // Forward declaration of the default fault handlers.
@@ -31,7 +43,7 @@ void ResetISR(void);
 static void NmiSR(void);
 static void FaultISR(void);
 static void IntDefaultHandler(void);
-
+static void ButtonHandler(void);
 //*****************************************************************************
 //
 // External declaration for the reset handler that is to be called when the
@@ -116,7 +128,7 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // System Control (PLL, OSC, BO)
     IntDefaultHandler,                      // FLASH Control
     IntDefaultHandler,                      // GPIO Port F
-    IntDefaultHandler,                      // GPIO Port G
+	ButtonHandler,                      // GPIO Port G
     IntDefaultHandler,                      // GPIO Port H
     IntDefaultHandler,                      // UART2 Rx and Tx
     IntDefaultHandler,                      // SSI1 Rx and Tx
@@ -207,3 +219,11 @@ IntDefaultHandler(void)
     }
 }
 
+
+static void
+ButtonHandler(void)
+{
+
+	vPrintString("innnnnttttt\n");
+	GPIOPinIntClear (GPIO_PORTG_BASE, BUTTON_PINS);
+}
