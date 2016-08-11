@@ -4,7 +4,7 @@ startup_ccs.obj: ../startup_ccs.c
 startup_ccs.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_15.12.1.LTS/include/stdint.h
 startup_ccs.obj: C:/StellarisWare/inc/hw_types.h
 startup_ccs.obj: C:/StellarisWare/inc/hw_memmap.h
-startup_ccs.obj: ../screenDrawTask.h
+startup_ccs.obj: ../tasks/projectTasks.h
 startup_ccs.obj: C:/Users/Brook/workspace_v6_1_3/FRT/include/FreeRTOS.h
 startup_ccs.obj: C:/ti/ccsv6/tools/compiler/ti-cgt-arm_15.12.1.LTS/include/stddef.h
 startup_ccs.obj: C:/Users/Brook/workspace_v6_1_3/FRT/include/projdefs.h
@@ -23,7 +23,7 @@ startup_ccs.obj: ../demo_code/basic_io.h
 C:/ti/ccsv6/tools/compiler/ti-cgt-arm_15.12.1.LTS/include/stdint.h: 
 C:/StellarisWare/inc/hw_types.h: 
 C:/StellarisWare/inc/hw_memmap.h: 
-../screenDrawTask.h: 
+../tasks/projectTasks.h: 
 C:/Users/Brook/workspace_v6_1_3/FRT/include/FreeRTOS.h: 
 C:/ti/ccsv6/tools/compiler/ti-cgt-arm_15.12.1.LTS/include/stddef.h: 
 C:/Users/Brook/workspace_v6_1_3/FRT/include/projdefs.h: 

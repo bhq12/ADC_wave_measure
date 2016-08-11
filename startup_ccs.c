@@ -25,7 +25,7 @@
 /* Stellaris library includes. */
 #include "inc\hw_types.h"
 #include "inc\hw_memmap.h"
-#include "screenDrawTask.h"
+#include "tasks/projectTasks.h"
 #include "hw_ints.h"
 #include "driverlib/gpio.h"
 #include "driverlib/interrupt.h"

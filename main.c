@@ -40,14 +40,12 @@
 
 #include "drivers/class-d.h"
 #include "drivers/rit128x96x4.h"
-#include "screenDrawTask.h"
+#include "tasks/projectTasks.h"
 #include "queue.h"
-#include "hw_memmap.h"
 #include "hw_ints.h"
 #include "driverlib/adc.h"
 #include "driverlib/gpio.h"
-#include "driverlib/interrupt.h"
-//#include "inc\hw_sysctl.h"
+#include "driverlib/interrupt.h""
 #include "driverlib/sysctl.h"
 
 /* Demo includes. */

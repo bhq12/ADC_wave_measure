@@ -3,13 +3,17 @@
 
 #include "FreeRTOS.h"
 #include "queue.h"
-extern void makeNoiseTask( unsigned long *pvParameters );
-extern void screenDrawTask( void *pvParameters );
-extern void pollADCTask( unsigned long *pvParameters );
+
 extern xQueueHandle xADCQueue0;
 extern xQueueHandle xADCQueue1;
 extern xQueueHandle xScreenStateQueue;
-extern void pollADCTask( unsigned long *adcVal);
+
+//tasks in use
+extern void screenDrawTask();
+extern void pollADCTask();
+
+//rubbish testing tasks
 extern void queueTestTask( void *pvParameters );
+extern void makeNoiseTask( unsigned long *pvParameters );
 
 #endif

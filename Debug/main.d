@@ -14,7 +14,7 @@ main.obj: C:/StellarisWare/inc/hw_types.h
 main.obj: C:/StellarisWare/inc/hw_memmap.h
 main.obj: C:/StellarisWare/boards/ek-lm3s1968/drivers/class-d.h
 main.obj: C:/StellarisWare/boards/ek-lm3s1968/drivers/rit128x96x4.h
-main.obj: ../screenDrawTask.h
+main.obj: ../tasks/projectTasks.h
 main.obj: C:/Users/Brook/workspace_v6_1_3/FRT/include/queue.h
 main.obj: C:/Users/Brook/workspace_v6_1_3/FRT/include/queue.h
 main.obj: C:/StellarisWare/inc/hw_ints.h
@@ -39,7 +39,7 @@ C:/StellarisWare/inc/hw_types.h:
 C:/StellarisWare/inc/hw_memmap.h: 
 C:/StellarisWare/boards/ek-lm3s1968/drivers/class-d.h: 
 C:/StellarisWare/boards/ek-lm3s1968/drivers/rit128x96x4.h: 
-../screenDrawTask.h: 
+../tasks/projectTasks.h: 
 C:/Users/Brook/workspace_v6_1_3/FRT/include/queue.h: 
 C:/Users/Brook/workspace_v6_1_3/FRT/include/queue.h: 
 C:/StellarisWare/inc/hw_ints.h: 
