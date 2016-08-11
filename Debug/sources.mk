@@ -114,4 +114,5 @@ SUBDIRS := \
 . \
 demo_code \
 portable \
+tasks \
 

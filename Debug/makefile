@@ -14,13 +14,14 @@ ORDERED_OBJS += \
 "./main.obj" \
 "./queue.obj" \
 "./rit128x96x4.obj" \
-"./screenDrawTask.obj" \
 "./startup_ccs.obj" \
 "./tasks.obj" \
 "./demo_code/basic_io.obj" \
 "./portable/heap_2.obj" \
 "./portable/port.obj" \
 "./portable/portasm.obj" \
+"./tasks/pollADC.obj" \
+"./tasks/screenDraw.obj" \
 "../lm3s1968.cmd" \
 $(GEN_CMDS__FLAG) \
 -llibc.a \
@@ -36,9 +37,11 @@ RMDIR := RMDIR /S/Q
 -include subdir_vars.mk
 -include demo_code/subdir_vars.mk
 -include portable/subdir_vars.mk
+-include tasks/subdir_vars.mk
 -include subdir_rules.mk
 -include demo_code/subdir_rules.mk
 -include portable/subdir_rules.mk
+-include tasks/subdir_rules.mk
 -include objects.mk
 
 ifneq ($(MAKECMDGOALS),clean)
@@ -167,8 +170,8 @@ FRT.hex: $(EXE_OUTPUTS)
 # Other Targets
 clean:
 	-$(RM) $(EXE_OUTPUTS__QUOTED)$(BIN_OUTPUTS__QUOTED)
-	-$(RM) "list.d" "main.d" "queue.d" "rit128x96x4.d" "screenDrawTask.d" "startup_ccs.d" "tasks.d" "demo_code\basic_io.d" "portable\heap_2.d" "portable\port.d" 
-	-$(RM) "list.obj" "main.obj" "queue.obj" "rit128x96x4.obj" "screenDrawTask.obj" "startup_ccs.obj" "tasks.obj" "demo_code\basic_io.obj" "portable\heap_2.obj" "portable\port.obj" "portable\portasm.obj" 
+	-$(RM) "list.d" "main.d" "queue.d" "rit128x96x4.d" "startup_ccs.d" "tasks.d" "demo_code\basic_io.d" "portable\heap_2.d" "portable\port.d" "tasks\pollADC.d" "tasks\screenDraw.d" 
+	-$(RM) "list.obj" "main.obj" "queue.obj" "rit128x96x4.obj" "startup_ccs.obj" "tasks.obj" "demo_code\basic_io.obj" "portable\heap_2.obj" "portable\port.obj" "portable\portasm.obj" "tasks\pollADC.obj" "tasks\screenDraw.obj" 
 	-$(RM) "portable\portasm.d" 
 	-@echo 'Finished clean'
 	-@echo ' '

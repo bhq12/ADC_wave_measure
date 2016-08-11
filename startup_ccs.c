@@ -224,6 +224,15 @@ static void
 ButtonHandler(void)
 {
 
-	vPrintString("innnnnttttt\n");
 	GPIOPinIntClear (GPIO_PORTG_BASE, BUTTON_PINS);
+
+	int three = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_3);
+	int four = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_4);
+	int five = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_5);
+	int six = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_6);
+	int seven = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_7);
+
+	if(!three || !four || !five || !six || !seven){
+		xQueueSendFromISR(xScreenStateQueue, 1, pdFALSE);
+	}
 }

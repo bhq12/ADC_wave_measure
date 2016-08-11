@@ -11,7 +11,6 @@ C_SRCS += \
 ../main.c \
 ../queue.c \
 ../rit128x96x4.c \
-../screenDrawTask.c \
 ../startup_ccs.c \
 ../tasks.c 
 
@@ -20,7 +19,6 @@ OBJS += \
 ./main.obj \
 ./queue.obj \
 ./rit128x96x4.obj \
-./screenDrawTask.obj \
 ./startup_ccs.obj \
 ./tasks.obj 
 
@@ -29,7 +27,6 @@ C_DEPS += \
 ./main.d \
 ./queue.d \
 ./rit128x96x4.d \
-./screenDrawTask.d \
 ./startup_ccs.d \
 ./tasks.d 
 
@@ -38,7 +35,6 @@ C_DEPS__QUOTED += \
 "main.d" \
 "queue.d" \
 "rit128x96x4.d" \
-"screenDrawTask.d" \
 "startup_ccs.d" \
 "tasks.d" 
 
@@ -47,7 +43,6 @@ OBJS__QUOTED += \
 "main.obj" \
 "queue.obj" \
 "rit128x96x4.obj" \
-"screenDrawTask.obj" \
 "startup_ccs.obj" \
 "tasks.obj" 
 
@@ -56,7 +51,6 @@ C_SRCS__QUOTED += \
 "../main.c" \
 "../queue.c" \
 "../rit128x96x4.c" \
-"../screenDrawTask.c" \
 "../startup_ccs.c" \
 "../tasks.c" 
 

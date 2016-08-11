@@ -67,6 +67,7 @@ const char *pcTextForTask1 = "Task 1";
 const char *pcTextForTask2 = "Task 2";
 xQueueHandle xADCQueue0;
 xQueueHandle xADCQueue1;
+xQueueHandle xScreenStateQueue;
 
 //*****************************************************************************
 //
@@ -97,6 +98,7 @@ int main( void )
 	initButtons();
 	xADCQueue0 = xQueueCreate(10, sizeof (unsigned long));
 	xADCQueue1 = xQueueCreate(10, sizeof (unsigned long));
+	xScreenStateQueue = xQueueCreate(1, sizeof (int));
 
 
 
