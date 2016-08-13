@@ -119,7 +119,7 @@ void printPeriod(float period){
 void printAmplitude(float amplitude){
 
 	//IntMasterDisable();
-	RIT128x96x4StringDraw("Amplitude:", 0, 80, 'm');
+	RIT128x96x4StringDraw("Amplitude: ", 0, 80, 'm');
 	//IntMasterEnable();
 	//char message [8];
 
