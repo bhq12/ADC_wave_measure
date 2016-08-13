@@ -14,7 +14,6 @@ void screenDrawTask( )
 {
 	RIT128x96x4Init(1000000);
 
-
 	int state = 1;
 	unsigned long adcVal;
 	xQueueHandle* queue = &xADCQueue1;
@@ -42,6 +41,11 @@ int monitorState(int currentState){
 
 	if(isStateChange){
 		newState = !currentState;
+
+		//empty queue for button debouncing
+		xQueueReceive(xScreenStateQueue, &isStateChange, xTicksToWait);
+		xQueueReceive(xScreenStateQueue, &isStateChange, xTicksToWait);
+
 	}
 
 	return newState;
@@ -56,6 +60,9 @@ unsigned long receiveFromQueue(xQueueHandle queue){
 
 void printStatus(int state, unsigned long adcVal){
 	char adcMessage [25];
+
 	sprintf (adcMessage, "ADC%d val: %lu   ", state, adcVal);
+	//IntMasterDisable();
 	RIT128x96x4StringDraw(adcMessage, 10, 10, 'm');
+	//IntMasterEnable();
 }

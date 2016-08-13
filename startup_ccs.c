@@ -29,11 +29,12 @@
 #include "hw_ints.h"
 #include "driverlib/gpio.h"
 #include "driverlib/interrupt.h"
-
+#include "portable/portmacro.h"
 
 /* Demo includes. */
 #include "demo_code\basic_io.h"
 #define BUTTON_PINS GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7
+#define TIMER_TIMA_TIMEOUT 0x00000001
 //*****************************************************************************
 //
 // Forward declaration of the default fault handlers.
@@ -44,6 +45,7 @@ static void NmiSR(void);
 static void FaultISR(void);
 static void IntDefaultHandler(void);
 static void ButtonHandler(void);
+static void TimerADCHandler(void);
 //*****************************************************************************
 //
 // External declaration for the reset handler that is to be called when the
@@ -116,9 +118,9 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // ADC Sequence 2
     IntDefaultHandler,                      // ADC Sequence 3
     IntDefaultHandler,                      // Watchdog timer
-    IntDefaultHandler,                      // Timer 0 subtimer A
+	TimerADCHandler,                      	// Timer 0 subtimer A
     IntDefaultHandler,                      // Timer 0 subtimer B
-    IntDefaultHandler,                      // Timer 1 subtimer A
+	IntDefaultHandler,                      	// Timer 1 subtimer A
     IntDefaultHandler,                      // Timer 1 subtimer B
     IntDefaultHandler,                      // Timer 2 subtimer A
     IntDefaultHandler,                      // Timer 2 subtimer B
@@ -225,7 +227,6 @@ ButtonHandler(void)
 {
 
 	GPIOPinIntClear (GPIO_PORTG_BASE, BUTTON_PINS);
-
 	int three = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_3);
 	int four = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_4);
 	int five = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_5);
@@ -235,4 +236,33 @@ ButtonHandler(void)
 	if(!three || !four || !five || !six || !seven){
 		xQueueSendFromISR(xScreenStateQueue, 1, pdFALSE);
 	}
+}
+
+//*****************************************************************************
+//
+// The interrupt handler for the first timer interrupt.
+//
+//*****************************************************************************
+static void
+TimerADCHandler(void)
+{
+	// Clear the timer interrupt.
+	TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
+
+	unsigned long sample[4] = {0};
+
+	//Triggers an ADC sampling, using sequence number 2
+	ADCProcessorTrigger(ADC0_BASE, 2);
+
+	//Wait for the sampling to finish
+	while (!ADCIntStatus(ADC0_BASE, 2, false)) {
+	}
+
+	//Obtain the sample
+	ADCSequenceDataGet(ADC0_BASE, 2, sample);
+	xQueueSendFromISR(xADCQueue0, &sample[0], pdFALSE);
+	xQueueSendFromISR(xADCQueue1, &sample[1], pdFALSE);
+	//trigger ADC sampling for next interrupt so no wait loop needed
+	//ADCProcessorTrigger(ADC0_BASE, 2);
+
 }

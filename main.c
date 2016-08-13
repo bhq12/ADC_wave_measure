@@ -33,6 +33,8 @@
 /* FreeRTOS includes. */
 #include "include/FreeRTOS.h"
 #include "include/task.h"
+#include "queue.h"
+#include "timers.h"
 
 /* Stellaris library includes. */
 #include "inc\hw_types.h"
@@ -41,15 +43,14 @@
 #include "drivers/class-d.h"
 #include "drivers/rit128x96x4.h"
 #include "tasks/projectTasks.h"
-#include "queue.h"
+
 #include "hw_ints.h"
 #include "driverlib/adc.h"
 #include "driverlib/gpio.h"
 #include "driverlib/interrupt.h""
 #include "driverlib/sysctl.h"
+#include "driverlib/timer.h"
 
-/* Demo includes. */
-#include "demo_code\basic_io.h"
 
 /* Used as a loop counter to create a very crude delay. */
 #define mainDELAY_LOOP_COUNT		( 0xfffff )
@@ -63,9 +64,40 @@ defined const and off the stack to ensure they remain valid when the tasks are
 executing. */
 const char *pcTextForTask1 = "Task 1";
 const char *pcTextForTask2 = "Task 2";
+
 xQueueHandle xADCQueue0;
 xQueueHandle xADCQueue1;
 xQueueHandle xScreenStateQueue;
+
+
+void initADC(void){
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+	GPIOPinTypeADC(GPIO_PORTA_BASE, GPIO_PIN_1); //ADC1
+	GPIOPinTypeADC(GPIO_PORTB_BASE, GPIO_PIN_1); //ADC0
+
+	//Set up ADC0 to use sequence number 2. This means that
+	//
+	//ADC_TRIGGER_PROCESSOR means that we can cause the processor
+	//to trigger an ADC sample, which allows us to later read a sample
+	ADCSequenceConfigure(ADC0_BASE, 2, ADC_TRIGGER_PROCESSOR, 0);
+
+
+	//Configure a step of the sample sequencer.
+	//In this case, we are configuring ADC0 to use sequence number 2,
+	//and we are configuring step 0. Step 0 will use input channel 0
+	//ADCSequenceStepConfigure(ADC0_BASE, 2, 0, ADC_CTL_CH0 | ADC_CTL_IE | ADC_CTL_END);
+	ADCSequenceStepConfigure(ADC0_BASE, 2, 0, ADC_CTL_CH0);
+
+	ADCSequenceStepConfigure(ADC0_BASE, 2, 1, ADC_CTL_CH1 | ADC_CTL_IE | ADC_CTL_END);
+	//Enable sample sequence 2
+	ADCSequenceEnable(ADC0_BASE, 2);
+
+	//Clear the source of a sample sequence interrupt
+	//This means that the interrupt no longer asserts
+	ADCIntClear(ADC0_BASE, 2);
+}
 
 //*****************************************************************************
 //
@@ -85,6 +117,39 @@ void initButtons(void){
     IntEnable(INT_GPIOG);
 }
 
+//*****************************************************************************
+//
+//  Function to initialise the timer
+//
+//*****************************************************************************
+void initTimer(void){
+
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
+
+
+	//
+	// Enable processor interrupts.
+	//
+	IntMasterEnable();
+
+	//
+	// Configure the two 32-bit periodic timers.
+	//
+	TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
+	TimerControlEvent(TIMER0_BASE, TIMER_A, TIMER_EVENT_BOTH_EDGES);
+	TimerLoadSet(TIMER0_BASE, TIMER_A, SysCtlClockGet()/1000);//timer expires 1,000 times per second
+
+	//
+	// Setup the interrupts for the timer timeouts.
+	//
+	IntPrioritySet(INT_TIMER0A, configKERNEL_INTERRUPT_PRIORITY);
+	TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
+	IntEnable(INT_TIMER0A);
+	//
+	// Enable the timers.
+	//
+	TimerEnable(TIMER0_BASE, TIMER_A);
+}
 /*-----------------------------------------------------------*/
 
 int main( void )
@@ -94,10 +159,12 @@ int main( void )
 	whereas some older eval boards used 6MHz. */
 	SysCtlClockSet( SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_8MHZ );
 	initButtons();
+	initADC();
+	initTimer();
+
 	xADCQueue0 = xQueueCreate(10, sizeof (unsigned long));
 	xADCQueue1 = xQueueCreate(10, sizeof (unsigned long));
 	xScreenStateQueue = xQueueCreate(1, sizeof (int));
-
 
 
 	/* Create one of the two tasks. */
@@ -114,7 +181,7 @@ int main( void )
 
 	//xTaskCreate( pollADCTask, "Task 2", 240, &adcVal, 1, NULL );
 	//xTaskCreate( makeNoiseTask, "Task 3", 240, (void*)NULL, 1, NULL );
-	xTaskCreate( pollADCTask, "Task 3", 240, (void*)NULL, 1, NULL );
+	//xTaskCreate( pollADCTask, "Task 3", 240, (void*)NULL, 1, NULL );
 
 	/* Start the scheduler so our tasks start executing. */
 	vTaskStartScheduler();	
