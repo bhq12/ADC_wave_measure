@@ -49,7 +49,6 @@ static void IntDefaultHandler(void);
 static void ButtonHandler(void);
 static void TimerADCHandler(void);
 static void TimerFrequencyHandler(void);
-static void TestHandler(void);
 
 extern xQueueHandle xADCQueue;
 extern xQueueHandle xFrequencyQueue;
@@ -128,7 +127,7 @@ void (* const g_pfnVectors[])(void) =
     TimerFrequencyHandler,                      	// Timer 0 subtimer A
     IntDefaultHandler,                      // Timer 0 subtimer B
 	IntDefaultHandler,                      	// Timer 1 subtimer A
-    TestHandler,                      // Timer 1 subtimer B
+	IntDefaultHandler,                      // Timer 1 subtimer B
     IntDefaultHandler,                      // Timer 2 subtimer A
     IntDefaultHandler,                      // Timer 2 subtimer B
     IntDefaultHandler,                      // Analog Comparator 0
@@ -228,10 +227,12 @@ IntDefaultHandler(void)
     }
 }
 
-
+//unsigned long lastTime;
 static void
 ButtonHandler(void)
 {
+
+	//unsigned long time = TimerValueGet(TIMER0_BASE,TIMER_A);
 
 	GPIOPinIntClear (GPIO_PORTG_BASE, BUTTON_PINS);
 	int three = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_3);
@@ -240,10 +241,11 @@ ButtonHandler(void)
 	int six = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_6);
 	int seven = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_7);
 
-	if(!three || !four || !five || !six || !seven){
+	if( (!three || !four || !five || !six || !seven) /*&& abs(time - lastTime) > SysCtlClockGet()/100*/){
 		changeState();
 		//xQueueSendFromISR(xScreenStateQueue, 1, pdFALSE);
 	}
+	//lastTime = time;
 }
 
 //*****************************************************************************
@@ -299,10 +301,4 @@ TimerFrequencyHandler(void)
 	//
 	TimerLoadSet(TIMER1_BASE, TIMER_A,100000);
 
-}
-
-static void
-TestHandler(void)
-{
-	int x = 10;
 }
