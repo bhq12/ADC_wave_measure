@@ -30,6 +30,8 @@
 #include "driverlib/gpio.h"
 #include "driverlib/interrupt.h"
 #include "portable/portmacro.h"
+#include "driverlib/timer.h"
+#include "state.h"
 
 /* Demo includes. */
 #include "demo_code\basic_io.h"
@@ -46,6 +48,11 @@ static void FaultISR(void);
 static void IntDefaultHandler(void);
 static void ButtonHandler(void);
 static void TimerADCHandler(void);
+static void TimerFrequencyHandler(void);
+static void TestHandler(void);
+
+extern xQueueHandle xADCQueue;
+extern xQueueHandle xFrequencyQueue;
 //*****************************************************************************
 //
 // External declaration for the reset handler that is to be called when the
@@ -118,10 +125,10 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // ADC Sequence 2
     IntDefaultHandler,                      // ADC Sequence 3
     IntDefaultHandler,                      // Watchdog timer
-	TimerADCHandler,                      	// Timer 0 subtimer A
+    TimerFrequencyHandler,                      	// Timer 0 subtimer A
     IntDefaultHandler,                      // Timer 0 subtimer B
 	IntDefaultHandler,                      	// Timer 1 subtimer A
-    IntDefaultHandler,                      // Timer 1 subtimer B
+    TestHandler,                      // Timer 1 subtimer B
     IntDefaultHandler,                      // Timer 2 subtimer A
     IntDefaultHandler,                      // Timer 2 subtimer B
     IntDefaultHandler,                      // Analog Comparator 0
@@ -234,7 +241,8 @@ ButtonHandler(void)
 	int seven = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_7);
 
 	if(!three || !four || !five || !six || !seven){
-		xQueueSendFromISR(xScreenStateQueue, 1, pdFALSE);
+		changeState();
+		//xQueueSendFromISR(xScreenStateQueue, 1, pdFALSE);
 	}
 }
 
@@ -260,9 +268,41 @@ TimerADCHandler(void)
 
 	//Obtain the sample
 	ADCSequenceDataGet(ADC0_BASE, 2, sample);
-	xQueueSendFromISR(xADCQueue0, &sample[0], pdFALSE);
-	xQueueSendFromISR(xADCQueue1, &sample[1], pdFALSE);
+
+	if(getState){
+		xQueueSendFromISR(xADCQueue, &sample[1], pdFALSE);
+	}
+	else{
+		xQueueSendFromISR(xADCQueue, &sample[0], pdFALSE);
+	}
+
+
 	//trigger ADC sampling for next interrupt so no wait loop needed
 	//ADCProcessorTrigger(ADC0_BASE, 2);
 
+}
+
+
+static void
+TimerFrequencyHandler(void)
+{
+	TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
+
+	//
+	// Get the counter value
+	//
+	unsigned long timer=TimerValueGet(TIMER1_BASE,TIMER_A);
+	unsigned long frequency = (100000 - timer) * 10;//in Hz  // / 100; // measured in kHz
+	xQueueSendFromISR(xFrequencyQueue, &frequency, pdFALSE);
+	//
+	// Reset the counter value to 10000
+	//
+	TimerLoadSet(TIMER1_BASE, TIMER_A,100000);
+
+}
+
+static void
+TestHandler(void)
+{
+	int x = 10;
 }

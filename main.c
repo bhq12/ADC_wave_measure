@@ -34,7 +34,7 @@
 #include "include/FreeRTOS.h"
 #include "include/task.h"
 #include "queue.h"
-#include "timers.h"
+//#include "timers.h"
 
 /* Stellaris library includes. */
 #include "inc\hw_types.h"
@@ -47,9 +47,11 @@
 #include "hw_ints.h"
 #include "driverlib/adc.h"
 #include "driverlib/gpio.h"
-#include "driverlib/interrupt.h""
+#include "driverlib/interrupt.h"
 #include "driverlib/sysctl.h"
 #include "driverlib/timer.h"
+#include "state.h"
+#include "tasks/projectTasks.h"
 
 
 /* Used as a loop counter to create a very crude delay. */
@@ -65,9 +67,6 @@ executing. */
 const char *pcTextForTask1 = "Task 1";
 const char *pcTextForTask2 = "Task 2";
 
-xQueueHandle xADCQueue0;
-xQueueHandle xADCQueue1;
-xQueueHandle xScreenStateQueue;
 
 
 void initADC(void){
@@ -150,6 +149,53 @@ void initTimer(void){
 	//
 	TimerEnable(TIMER0_BASE, TIMER_A);
 }
+
+
+void initFrequencyTimer(void){
+
+	// Enable the peripherals used by this example.
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER1);
+
+
+	//
+	// Enable the D peripheral used by the TIMER 1 pin CPP2.(!! The counter will not work if the peripheral is not enabled)
+	//
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
+
+	//
+	// This function takes one of the valid names for a Timer pin and configures
+	// the pin for its Timer functionality depending on the part that is defined.
+	//
+	PinTypeTimer(CCP2);
+
+	// Enable processor interrupts.
+	IntMasterEnable();
+
+	// Configure the two 32-bit periodic timers.
+	TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
+	TimerConfigure(TIMER1_BASE, TIMER_CFG_A_CAP_COUNT);
+
+	// This function configures the timer load value; if the timer is running
+	// then the value is immediately loaded into the timer.
+	TimerLoadSet(TIMER0_BASE, TIMER_A, SysCtlClockGet()/10);//8000000/10=80000=100 milliseconds
+
+	//TimerLoadSet(TIMER1_BASE, TIMER_A,10000);
+	// This function configures the signal edge(s) that triggers the
+	// timer when in capture mode.
+	TimerControlEvent(TIMER1_BASE,TIMER_A,TIMER_EVENT_POS_EDGE);
+
+	// Setup the interrupt for the Timer0-TimerA timeouts.
+	IntEnable(INT_TIMER0A);
+	TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
+
+	// Enable the timers.
+	TimerEnable(TIMER0_BASE, TIMER_A);
+	TimerEnable(TIMER1_BASE, TIMER_A);
+}
+
+
+
 /*-----------------------------------------------------------*/
 
 int main( void )
@@ -160,11 +206,12 @@ int main( void )
 	SysCtlClockSet( SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_8MHZ );
 	initButtons();
 	initADC();
-	initTimer();
+	//initTimer();
+	initFrequencyTimer();
+	initialiseState();
 
-	xADCQueue0 = xQueueCreate(10, sizeof (unsigned long));
-	xADCQueue1 = xQueueCreate(10, sizeof (unsigned long));
-	xScreenStateQueue = xQueueCreate(1, sizeof (int));
+	xADCQueue = xQueueCreate(10, sizeof (unsigned long));
+	xFrequencyQueue = xQueueCreate(10, sizeof (unsigned long));
 
 
 	/* Create one of the two tasks. */
@@ -181,7 +228,7 @@ int main( void )
 
 	//xTaskCreate( pollADCTask, "Task 2", 240, &adcVal, 1, NULL );
 	//xTaskCreate( makeNoiseTask, "Task 3", 240, (void*)NULL, 1, NULL );
-	//xTaskCreate( pollADCTask, "Task 3", 240, (void*)NULL, 1, NULL );
+	xTaskCreate( pollADCTask, "Task 3", 240, (void*)NULL, 5, NULL );
 
 	/* Start the scheduler so our tasks start executing. */
 	vTaskStartScheduler();	

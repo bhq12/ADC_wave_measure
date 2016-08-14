@@ -4,9 +4,8 @@
 #include "FreeRTOS.h"
 #include "queue.h"
 
-extern xQueueHandle xADCQueue0;
-extern xQueueHandle xADCQueue1;
-extern xQueueHandle xScreenStateQueue;
+extern xQueueHandle xADCQueue;
+extern xQueueHandle xFrequencyQueue;
 
 //tasks in use
 extern void screenDrawTask();

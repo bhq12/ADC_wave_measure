@@ -5,63 +5,36 @@
 #include "driverlib/adc.h"
 #include "FreeRTOS.h"
 #include "queue.h"
-extern xQueueHandle xADCQueue0;
-extern xQueueHandle xADCQueue1;
-extern xQueueHandle xScreenStateQueue;
+#include "state.h"
+#include "projectTasks.h"
 
+
+xQueueHandle xADCQueue;
+xQueueHandle xFrequencyQueue;
 
 void screenDrawTask( )
 {
 	RIT128x96x4Init(1000000);
 	printTitles();
 
-	int state = 1;
+	//int state = 1;
 	unsigned long adcVal;
-	xQueueHandle* queue = &xADCQueue1;
 
 	for( ;; )
 	{
-		state = monitorState(state);
-		if(state){
-			queue = &xADCQueue1;
-		}
-		else{
-			queue = &xADCQueue0;
-		}
-		adcVal = receiveFromQueue(*queue);
-
-		printStatus(state, adcVal);
+		printStatus(getState(), adcVal);
 
 	}
-}
-
-int monitorState(int currentState){
-	int newState = currentState;
-	int isStateChange = 0;
-
-	const portTickType xTicksToWait = 100 / portTICK_RATE_MS;
-	xQueueReceive(xScreenStateQueue, &isStateChange, xTicksToWait);
-
-	if(isStateChange){
-		newState = !currentState;
-
-		//empty queue for button debouncing
-		xQueueReceive(xScreenStateQueue, &isStateChange, xTicksToWait);
-		xQueueReceive(xScreenStateQueue, &isStateChange, xTicksToWait);
-
-	}
-
-	return newState;
 }
 
 unsigned long receiveFromQueue(xQueueHandle queue){
 	const portTickType xTicksToWait = 100 / portTICK_RATE_MS;
-	unsigned long adcVal = 0;
-	xQueueReceive(queue, &adcVal, xTicksToWait);
-	return adcVal;
+	unsigned long val = 0;
+	xQueueReceive(queue, &val, xTicksToWait);
+	return val;
 }
 
-void printStatus(int state, unsigned long adcVal){
+void printStatus(unsigned long adcVal){
 
 
 	float frequency = 22;
@@ -69,7 +42,7 @@ void printStatus(int state, unsigned long adcVal){
 	float amplitude = 0.8;
 	float dutyCycle = 24.5;
 
-	if(state){
+	if(getState()){
 		//square wave/adc1: frequency, period, duty cycle
 		RIT128x96x4StringDraw("ADC1: square wave", 10, 25, 'm');
 		printDutyCycle(dutyCycle);
@@ -80,32 +53,52 @@ void printStatus(int state, unsigned long adcVal){
 		printAmplitude(amplitude);
 	}
 
-	//printFrequency(frequency);
+	printFrequency();
 	//printPeriod(period);
-	printADC(state, adcVal);
+	printADC();
 
 }
 
-void printADC(int state, unsigned long adcVal){
+void printADC(){
+	unsigned long adcVal = receiveFromQueue(xADCQueue);
 	char adcMessage [25];
-	snprintf (adcMessage, sizeof(adcMessage), "ADC%d val:", state);
+	snprintf (adcMessage, sizeof(adcMessage), "ADC%d val:", getState());
 
 	//IntMasterDisable();
 	RIT128x96x4StringDraw(adcMessage, 0, 50, 'm');
 	//IntMasterEnable();
-	snprintf (adcMessage, sizeof(adcMessage), "%lu", adcVal);
+	if(adcVal < 100000){
+		snprintf (adcMessage, sizeof(adcMessage), "%lu    ", adcVal);
+	}
+	else{
+		snprintf (adcMessage, sizeof(adcMessage), "%lu", adcVal);
+	}
 
+
+	if(adcVal != 0){
+		RIT128x96x4StringDraw(adcMessage, 75, 50, 'm');
+	}
 	//IntMasterDisable();
-	RIT128x96x4StringDraw(adcMessage, 75, 50, 'm');
+
 }
 
-void printFrequency(float frequency){
+void printFrequency(){
+	unsigned long frequency = receiveFromQueue(xFrequencyQueue);
 	char message [8];
 
-	snprintf (message, sizeof(message), "%.2fkHz", frequency);
-	//IntMasterDisable();
-	RIT128x96x4StringDraw(message, 75, 60, 'm');
-	//IntMasterEnable();
+
+	if(frequency < 100000){
+		snprintf (message, sizeof(message), "%lu    ", frequency);
+	}
+	else{
+		snprintf (message, sizeof(message), "%lu", frequency);
+	}
+
+
+	if(frequency != 0){
+		RIT128x96x4StringDraw(message, 75, 60, 'm');
+	}
+
 }
 
 void printPeriod(float period){

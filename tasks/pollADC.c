@@ -8,8 +8,8 @@
 #include "hw_memmap.h"
 #include "driverlib/gpio.h"
 #include "driverlib/sysctl.h"
-extern xQueueHandle xADCQueue0;
-extern xQueueHandle xADCQueue1;
+#include "state.h"
+#include "projectTasks.h"
 
 void initialiseADC(void){
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
@@ -43,17 +43,17 @@ void initialiseADC(void){
 
 void pollADCTask(){
 
-	initialiseADC();
+	//initialiseADC();
 	unsigned long sample[4];
 	sample[0] = 0ul;
 	sample[1] = 0ul;
-	while(true){
+	while(1){
 
 		//Triggers an ADC sampling, using sequence number 2
 		ADCProcessorTrigger(ADC0_BASE, 2);
 
 		//Wait for the sampling to finish
-		while (!ADCIntStatus(ADC0_BASE, 2, false)) {
+		while (!ADCIntStatus(ADC0_BASE, 2, 0)) {
 		}
 
 		//Obtain the sample
@@ -61,8 +61,14 @@ void pollADCTask(){
 		unsigned long valueAdc0 = (unsigned long)sample[0];
 		unsigned long valueAdc1 = (unsigned long)sample[1];
 
-		xQueueSend(xADCQueue0, &valueAdc0, 10);
-		xQueueSend(xADCQueue1, &valueAdc1, 10);
+		if(getState()){
+			xQueueSend(xADCQueue, &valueAdc0, 10);
+		}
+		else{
+			xQueueSend(xADCQueue, &valueAdc1, 10);
+		}
+
+
 	}
 }
 
