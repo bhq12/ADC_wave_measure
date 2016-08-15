@@ -227,7 +227,7 @@ IntDefaultHandler(void)
     }
 }
 
-unsigned long lastTime;
+int buttonReset;
 static void
 ButtonHandler(void)
 {
@@ -240,11 +240,12 @@ ButtonHandler(void)
 	int six = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_6);
 	int seven = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_7);
 
-	if( (!three || !four || !five || !six || !seven) && (abs(lastTime - time) > 500000)){
+	if( (!three || !four || !five || !six || !seven) && buttonReset){
 		changeState();
+		buttonReset = 0;
 		//xQueueSendFromISR(xScreenStateQueue, 1, pdFALSE);
 	}
-	lastTime = time;
+
 }
 
 //*****************************************************************************
@@ -289,15 +290,17 @@ TimerFrequencyHandler(void)
 {
 	TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
 
+	buttonReset = 1;
 	//
 	// Get the counter value
 	//
-	unsigned long timer=TimerValueGet(TIMER1_BASE,TIMER_A);
-	unsigned long frequency = (100000 - timer) * 10;//in Hz  // / 100; // measured in kHz
-	xQueueSendFromISR(xFrequencyQueue, &frequency, pdFALSE);
+	//unsigned long timer=TimerValueGet(TIMER1_BASE,TIMER_A);
+	//unsigned long frequency = (100000 - timer) * 10;//in Hz  // / 100; // measured in kHz
+	//xQueueSendFromISR(xFrequencyQueue, &frequency, pdFALSE);
 	//
 	// Reset the counter value to 10000
 	//
+	TimerLoadSet(TIMER0_BASE, TIMER_A, SysCtlClockGet()/2);
 	TimerLoadSet(TIMER1_BASE, TIMER_A,100000);
 
 }

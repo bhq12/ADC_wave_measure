@@ -52,6 +52,7 @@
 #include "driverlib/timer.h"
 #include "state.h"
 #include "tasks/projectTasks.h"
+#include "debug.h"
 
 
 /* Used as a loop counter to create a very crude delay. */
@@ -178,7 +179,7 @@ void initFrequencyTimer(void){
 
 	// This function configures the timer load value; if the timer is running
 	// then the value is immediately loaded into the timer.
-	TimerLoadSet(TIMER0_BASE, TIMER_A, SysCtlClockGet()/10);//8000000/10=80000=100 milliseconds
+	TimerLoadSet(TIMER0_BASE, TIMER_A, SysCtlClockGet()/2);//8000000/10=80000=100 milliseconds
 
 	//TimerLoadSet(TIMER1_BASE, TIMER_A,10000);
 	// This function configures the signal edge(s) that triggers the
@@ -207,9 +208,10 @@ int main( void )
 	initButtons();
 	initADC();
 	//initTimer();
-	//initFrequencyTimer();
+	initFrequencyTimer();
 	initADCTimer();
 	initialiseState();
+	initialiseDebugging();
 
 	xADCQueue = xQueueCreate(10, sizeof (unsigned long));
 	xFrequencyQueue = xQueueCreate(10, sizeof (unsigned long));
