@@ -121,9 +121,9 @@ void initButtons(void){
 //  Function to initialise the timer
 //
 //*****************************************************************************
-void initTimer(void){
+void initADCTimer(void){
 
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER2);
 
 
 	//
@@ -134,20 +134,20 @@ void initTimer(void){
 	//
 	// Configure the two 32-bit periodic timers.
 	//
-	TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
-	TimerControlEvent(TIMER0_BASE, TIMER_A, TIMER_EVENT_BOTH_EDGES);
-	TimerLoadSet(TIMER0_BASE, TIMER_A, SysCtlClockGet()/1000);//timer expires 1,000 times per second
+	TimerConfigure(TIMER2_BASE, TIMER_CFG_PERIODIC);
+	TimerControlEvent(TIMER2_BASE, TIMER_A, TIMER_EVENT_BOTH_EDGES);
+	TimerLoadSet(TIMER2_BASE, TIMER_A, SysCtlClockGet()/10000);//timer expires 10,000 times per second
 
 	//
 	// Setup the interrupts for the timer timeouts.
 	//
-	IntPrioritySet(INT_TIMER0A, configKERNEL_INTERRUPT_PRIORITY);
-	TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
-	IntEnable(INT_TIMER0A);
+	IntPrioritySet(INT_TIMER2A, configKERNEL_INTERRUPT_PRIORITY);
+	TimerIntEnable(TIMER2_BASE, TIMER_TIMA_TIMEOUT);
+	IntEnable(INT_TIMER2A);
 	//
 	// Enable the timers.
 	//
-	TimerEnable(TIMER0_BASE, TIMER_A);
+	TimerEnable(TIMER2_BASE, TIMER_A);
 }
 
 
@@ -207,7 +207,8 @@ int main( void )
 	initButtons();
 	initADC();
 	//initTimer();
-	initFrequencyTimer();
+	//initFrequencyTimer();
+	initADCTimer();
 	initialiseState();
 
 	xADCQueue = xQueueCreate(10, sizeof (unsigned long));
@@ -228,7 +229,7 @@ int main( void )
 
 	//xTaskCreate( pollADCTask, "Task 2", 240, &adcVal, 1, NULL );
 	//xTaskCreate( makeNoiseTask, "Task 3", 240, (void*)NULL, 1, NULL );
-	xTaskCreate( pollADCTask, "Task 3", 240, (void*)NULL, 5, NULL );
+	//xTaskCreate( pollADCTask, "Task 3", 240, (void*)NULL, 1, NULL );
 
 	/* Start the scheduler so our tasks start executing. */
 	vTaskStartScheduler();	

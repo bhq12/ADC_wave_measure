@@ -10,10 +10,10 @@ OBJS += \
 ./demo_code/basic_io.obj 
 
 C_DEPS += \
-./demo_code/basic_io.d 
+./demo_code/basic_io.pp 
 
 C_DEPS__QUOTED += \
-"demo_code\basic_io.d" 
+"demo_code\basic_io.pp" 
 
 OBJS__QUOTED += \
 "demo_code\basic_io.obj" 

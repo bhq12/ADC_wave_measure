@@ -4,5 +4,5 @@
 
 USER_OBJS :=
 
-LIBS := -llibc.a -l"C:/StellarisWare/driverlib/ccs-cm3/Debug/driverlib-cm3.lib"
+LIBS := -l"libc.a" -l"P:/StellarisWare/driverlib/ccs-cm3/Debug/driverlib-cm3.lib"
 

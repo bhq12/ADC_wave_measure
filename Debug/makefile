@@ -4,28 +4,26 @@
 
 SHELL = cmd.exe
 
-CG_TOOL_ROOT := C:/ti/ccsv6/tools/compiler/ti-cgt-arm_15.12.1.LTS
-
-GEN_OPTS__FLAG := 
-GEN_CMDS__FLAG := 
+CG_TOOL_ROOT := c:/ti/ccsv6/tools/compiler/arm_5.1.6
 
 ORDERED_OBJS += \
-"./list.obj" \
+$(GEN_CMDS__FLAG) \
 "./main.obj" \
-"./queue.obj" \
 "./rit128x96x4.obj" \
 "./startup_ccs.obj" \
-"./tasks.obj" \
-"./demo_code/basic_io.obj" \
+"./state.obj" \
+"./tasks/pollADC.obj" \
+"./tasks/screenDraw.obj" \
 "./portable/heap_2.obj" \
 "./portable/port.obj" \
 "./portable/portasm.obj" \
-"./tasks/pollADC.obj" \
-"./tasks/screenDraw.obj" \
+"./include/list.obj" \
+"./include/queue.obj" \
+"./include/tasks.obj" \
+"./demo_code/basic_io.obj" \
 "../lm3s1968.cmd" \
-$(GEN_CMDS__FLAG) \
--llibc.a \
--l"C:/StellarisWare/driverlib/ccs-cm3/Debug/driverlib-cm3.lib" \
+-l"libc.a" \
+-l"P:\StellarisWare\driverlib\ccs-cm3\Debug\driverlib-cm3.lib" \
 
 -include ../makefile.init
 
@@ -35,13 +33,15 @@ RMDIR := RMDIR /S/Q
 # All of the sources participating in the build are defined here
 -include sources.mk
 -include subdir_vars.mk
--include demo_code/subdir_vars.mk
--include portable/subdir_vars.mk
 -include tasks/subdir_vars.mk
+-include portable/subdir_vars.mk
+-include include/subdir_vars.mk
+-include demo_code/subdir_vars.mk
 -include subdir_rules.mk
--include demo_code/subdir_rules.mk
--include portable/subdir_rules.mk
 -include tasks/subdir_rules.mk
+-include portable/subdir_rules.mk
+-include include/subdir_rules.mk
+-include demo_code/subdir_rules.mk
 -include objects.mk
 
 ifneq ($(MAKECMDGOALS),clean)
@@ -63,20 +63,17 @@ endif
 ifneq ($(strip $(CC_DEPS)),)
 -include $(CC_DEPS)
 endif
-ifneq ($(strip $(SV7A_DEPS)),)
--include $(SV7A_DEPS)
-endif
 ifneq ($(strip $(S55_DEPS)),)
 -include $(S55_DEPS)
 endif
 ifneq ($(strip $(C67_DEPS)),)
 -include $(C67_DEPS)
 endif
-ifneq ($(strip $(CLA_DEPS)),)
--include $(CLA_DEPS)
-endif
 ifneq ($(strip $(C??_DEPS)),)
 -include $(C??_DEPS)
+endif
+ifneq ($(strip $(CLA_DEPS)),)
+-include $(CLA_DEPS)
 endif
 ifneq ($(strip $(CPP_DEPS)),)
 -include $(CPP_DEPS)
@@ -105,9 +102,6 @@ endif
 ifneq ($(strip $(C43_DEPS)),)
 -include $(C43_DEPS)
 endif
-ifneq ($(strip $(INO_DEPS)),)
--include $(INO_DEPS)
-endif
 ifneq ($(strip $(S67_DEPS)),)
 -include $(S67_DEPS)
 endif
@@ -119,9 +113,6 @@ ifneq ($(strip $(S43_DEPS)),)
 endif
 ifneq ($(strip $(OPT_DEPS)),)
 -include $(OPT_DEPS)
-endif
-ifneq ($(strip $(PDE_DEPS)),)
--include $(PDE_DEPS)
 endif
 ifneq ($(strip $(S64_DEPS)),)
 -include $(S64_DEPS)
@@ -157,22 +148,22 @@ all: FRT.out
 FRT.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: ARM Linker'
-	"C:/ti/ccsv6/tools/compiler/ti-cgt-arm_15.12.1.LTS/bin/armcl" -mv7M3 --code_state=16 --abi=eabi -me -g --gcc --define="ccs" --define=PART_LM3S1968 --display_error_number --diag_warning=225 --diag_wrap=off -z -m"FRT.map" --heap_size=4096 --stack_size=4096 -i"C:/ti/ccsv6/tools/compiler/ti-cgt-arm_15.12.1.LTS/lib" -i"C:/ti/ccsv6/tools/compiler/ti-cgt-arm_15.12.1.LTS/include" --reread_libs --warn_sections --display_error_number --diag_wrap=off --xml_link_info="FRT_linkInfo.xml" --rom_model -o "FRT.out" $(ORDERED_OBJS)
+	"c:/ti/ccsv6/tools/compiler/arm_5.1.6/bin/armcl" -mv7M3 --code_state=16 --abi=eabi -me -g --gcc --define="ccs" --define=PART_LM3S1968 --display_error_number --diag_warning=225 --diag_wrap=off -z -m"FRT.map" --heap_size=4096 --stack_size=4096 -i"c:/ti/ccsv6/tools/compiler/arm_5.1.6/lib" -i"c:/ti/ccsv6/tools/compiler/arm_5.1.6/include" --reread_libs --warn_sections --display_error_number --diag_wrap=off --xml_link_info="FRT_linkInfo.xml" --rom_model -o "FRT.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 FRT.hex: $(EXE_OUTPUTS)
 	@echo 'Invoking: ARM Hex Utility'
-	"C:/ti/ccsv6/tools/compiler/ti-cgt-arm_15.12.1.LTS/bin/armhex"  -o "FRT.hex" $(EXE_OUTPUTS__QUOTED)
+	"c:/ti/ccsv6/tools/compiler/arm_5.1.6/bin/armhex"  -o "FRT.hex" $(EXE_OUTPUTS__QUOTED)
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
 	-$(RM) $(EXE_OUTPUTS__QUOTED)$(BIN_OUTPUTS__QUOTED)
-	-$(RM) "list.d" "main.d" "queue.d" "rit128x96x4.d" "startup_ccs.d" "tasks.d" "demo_code\basic_io.d" "portable\heap_2.d" "portable\port.d" "tasks\pollADC.d" "tasks\screenDraw.d" 
-	-$(RM) "list.obj" "main.obj" "queue.obj" "rit128x96x4.obj" "startup_ccs.obj" "tasks.obj" "demo_code\basic_io.obj" "portable\heap_2.obj" "portable\port.obj" "portable\portasm.obj" "tasks\pollADC.obj" "tasks\screenDraw.obj" 
-	-$(RM) "portable\portasm.d" 
+	-$(RM) "main.pp" "rit128x96x4.pp" "startup_ccs.pp" "state.pp" "tasks\pollADC.pp" "tasks\screenDraw.pp" "portable\heap_2.pp" "portable\port.pp" "include\list.pp" "include\queue.pp" "include\tasks.pp" "demo_code\basic_io.pp" 
+	-$(RM) "main.obj" "rit128x96x4.obj" "startup_ccs.obj" "state.obj" "tasks\pollADC.obj" "tasks\screenDraw.obj" "portable\heap_2.obj" "portable\port.obj" "portable\portasm.obj" "include\list.obj" "include\queue.obj" "include\tasks.obj" "demo_code\basic_io.obj" 
+	-$(RM) "portable\portasm.pp" 
 	-@echo 'Finished clean'
 	-@echo ' '
 

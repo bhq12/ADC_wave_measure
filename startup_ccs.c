@@ -32,7 +32,7 @@
 #include "portable/portmacro.h"
 #include "driverlib/timer.h"
 #include "state.h"
-
+#include <stdio.h>
 /* Demo includes. */
 #include "demo_code\basic_io.h"
 #define BUTTON_PINS GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7
@@ -126,9 +126,9 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // Watchdog timer
     TimerFrequencyHandler,                      	// Timer 0 subtimer A
     IntDefaultHandler,                      // Timer 0 subtimer B
-	IntDefaultHandler,                      	// Timer 1 subtimer A
+    IntDefaultHandler,                      	// Timer 1 subtimer A
 	IntDefaultHandler,                      // Timer 1 subtimer B
-    IntDefaultHandler,                      // Timer 2 subtimer A
+	TimerADCHandler,                      // Timer 2 subtimer A
     IntDefaultHandler,                      // Timer 2 subtimer B
     IntDefaultHandler,                      // Analog Comparator 0
     IntDefaultHandler,                      // Analog Comparator 1
@@ -227,12 +227,11 @@ IntDefaultHandler(void)
     }
 }
 
-//unsigned long lastTime;
+unsigned long lastTime;
 static void
 ButtonHandler(void)
 {
-
-	//unsigned long time = TimerValueGet(TIMER0_BASE,TIMER_A);
+	unsigned long time = TimerValueGet(TIMER0_BASE,TIMER_A);
 
 	GPIOPinIntClear (GPIO_PORTG_BASE, BUTTON_PINS);
 	int three = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_3);
@@ -241,11 +240,11 @@ ButtonHandler(void)
 	int six = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_6);
 	int seven = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_7);
 
-	if( (!three || !four || !five || !six || !seven) /*&& abs(time - lastTime) > SysCtlClockGet()/100*/){
+	if( (!three || !four || !five || !six || !seven) && (abs(lastTime - time) > 500000)){
 		changeState();
 		//xQueueSendFromISR(xScreenStateQueue, 1, pdFALSE);
 	}
-	//lastTime = time;
+	lastTime = time;
 }
 
 //*****************************************************************************
@@ -257,7 +256,7 @@ static void
 TimerADCHandler(void)
 {
 	// Clear the timer interrupt.
-	TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
+	TimerIntClear(TIMER2_BASE, TIMER_TIMA_TIMEOUT);
 
 	unsigned long sample[4] = {0};
 
@@ -271,13 +270,13 @@ TimerADCHandler(void)
 	//Obtain the sample
 	ADCSequenceDataGet(ADC0_BASE, 2, sample);
 
-	if(getState){
+	if(getState()){
 		xQueueSendFromISR(xADCQueue, &sample[1], pdFALSE);
 	}
 	else{
 		xQueueSendFromISR(xADCQueue, &sample[0], pdFALSE);
 	}
-
+	TimerLoadSet(TIMER2_BASE, TIMER_A, SysCtlClockGet()/10000);//timer expires 10,000 times per second
 
 	//trigger ADC sampling for next interrupt so no wait loop needed
 	//ADCProcessorTrigger(ADC0_BASE, 2);

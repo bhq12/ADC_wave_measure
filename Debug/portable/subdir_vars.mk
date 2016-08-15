@@ -16,15 +16,15 @@ OBJS += \
 ./portable/portasm.obj 
 
 ASM_DEPS += \
-./portable/portasm.d 
+./portable/portasm.pp 
 
 C_DEPS += \
-./portable/heap_2.d \
-./portable/port.d 
+./portable/heap_2.pp \
+./portable/port.pp 
 
 C_DEPS__QUOTED += \
-"portable\heap_2.d" \
-"portable\port.d" 
+"portable\heap_2.pp" \
+"portable\port.pp" 
 
 OBJS__QUOTED += \
 "portable\heap_2.obj" \
@@ -32,7 +32,7 @@ OBJS__QUOTED += \
 "portable\portasm.obj" 
 
 ASM_DEPS__QUOTED += \
-"portable\portasm.d" 
+"portable\portasm.pp" 
 
 C_SRCS__QUOTED += \
 "../portable/heap_2.c" \

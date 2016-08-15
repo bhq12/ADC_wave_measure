@@ -12,12 +12,12 @@ OBJS += \
 ./tasks/screenDraw.obj 
 
 C_DEPS += \
-./tasks/pollADC.d \
-./tasks/screenDraw.d 
+./tasks/pollADC.pp \
+./tasks/screenDraw.pp 
 
 C_DEPS__QUOTED += \
-"tasks\pollADC.d" \
-"tasks\screenDraw.d" 
+"tasks\pollADC.pp" \
+"tasks\screenDraw.pp" 
 
 OBJS__QUOTED += \
 "tasks\pollADC.obj" \

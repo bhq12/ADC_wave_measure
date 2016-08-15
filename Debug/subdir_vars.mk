@@ -7,51 +7,39 @@ CMD_SRCS += \
 ../lm3s1968.cmd 
 
 C_SRCS += \
-../list.c \
 ../main.c \
-../queue.c \
 ../rit128x96x4.c \
 ../startup_ccs.c \
-../tasks.c 
+../state.c 
 
 OBJS += \
-./list.obj \
 ./main.obj \
-./queue.obj \
 ./rit128x96x4.obj \
 ./startup_ccs.obj \
-./tasks.obj 
+./state.obj 
 
 C_DEPS += \
-./list.d \
-./main.d \
-./queue.d \
-./rit128x96x4.d \
-./startup_ccs.d \
-./tasks.d 
+./main.pp \
+./rit128x96x4.pp \
+./startup_ccs.pp \
+./state.pp 
 
 C_DEPS__QUOTED += \
-"list.d" \
-"main.d" \
-"queue.d" \
-"rit128x96x4.d" \
-"startup_ccs.d" \
-"tasks.d" 
+"main.pp" \
+"rit128x96x4.pp" \
+"startup_ccs.pp" \
+"state.pp" 
 
 OBJS__QUOTED += \
-"list.obj" \
 "main.obj" \
-"queue.obj" \
 "rit128x96x4.obj" \
 "startup_ccs.obj" \
-"tasks.obj" 
+"state.obj" 
 
 C_SRCS__QUOTED += \
-"../list.c" \
 "../main.c" \
-"../queue.c" \
 "../rit128x96x4.c" \
 "../startup_ccs.c" \
-"../tasks.c" 
+"../state.c" 
 
 
