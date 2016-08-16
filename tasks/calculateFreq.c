@@ -49,7 +49,7 @@ void calculateFrequencyTask( )
 
 
 		//frequency = count * samplingPeriod;
-		xQueueSend(xFrequencyQueue0, &frequency, 10);
+		xQueueSend(xFrequencyQueue, &frequency, 10);
 	}
 }
 
