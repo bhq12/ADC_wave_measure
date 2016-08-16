@@ -11,7 +11,8 @@ int pinOn;
 
 void initialiseDebugging(){
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOH);
-	GPIOPinTypeGPIOOutput(GPIO_PORTH_BASE, GPIO_PIN_2);
+	//GPIOPinTypeGPIOOutput(GPIO_PORTH_BASE, GPIO_PIN_2);
+	GPIODirModeSet (GPIO_PORTH_BASE, GPIO_PIN_2, GPIO_DIR_MODE_OUT);
 	GPIOPinWrite(GPIO_PORTH_BASE, GPIO_PIN_2, 0xFF);
 	pinOn = 1;
 
@@ -32,7 +33,6 @@ void switchDebugPin(){
 	if(pinOn == 1){
 		pinOn = 0;
 		GPIOPinWrite(GPIO_PORTH_BASE, GPIO_PIN_2, 0x00);
-		int i;
 	}
 	else if (pinOn == 0){
 		pinOn = 1;
