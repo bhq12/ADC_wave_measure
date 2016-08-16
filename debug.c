@@ -2,6 +2,7 @@
 #include "hw_memmap.h"
 #include "hw_types.h"
 #include "driverlib/gpio.h"
+#include "driverlib/sysctl.h"
 
 
 //module to allow toggling of pins to allow program debugging and analysis using an oscilliscope
@@ -9,31 +10,32 @@
 int pinOn;
 
 void initialiseDebugging(){
-	GPIOPinTypeGPIOOutput(GPIO_PORTB_BASE, GPIO_PIN_7);
-	GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_7, 0xFF);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOH);
+	GPIOPinTypeGPIOOutput(GPIO_PORTH_BASE, GPIO_PIN_2);
+	GPIOPinWrite(GPIO_PORTH_BASE, GPIO_PIN_2, 0xFF);
 	pinOn = 1;
 
 }
 
 void debugPinOn(){
 	pinOn = 1;
-	GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_7, 0xFF);
+	GPIOPinWrite(GPIO_PORTH_BASE, GPIO_PIN_2, 0xFF);
 }
 
 void debugPinOff(){
 	pinOn = 0;
-	GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_7, 0x00);
+	GPIOPinWrite(GPIO_PORTH_BASE, GPIO_PIN_2, 0x00);
 }
 
 //TODO: doesn't appear to set pin low, 0x00 wrong value?
 void switchDebugPin(){
 	if(pinOn == 1){
 		pinOn = 0;
-		GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_7, 0x00);
+		GPIOPinWrite(GPIO_PORTH_BASE, GPIO_PIN_2, 0x00);
 		int i;
 	}
 	else if (pinOn == 0){
 		pinOn = 1;
-		GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_7, 0xFF);
+		GPIOPinWrite(GPIO_PORTH_BASE, GPIO_PIN_2, 0xFF);
 	}
 }
