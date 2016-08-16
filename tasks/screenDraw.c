@@ -23,7 +23,7 @@ void screenDrawTask( )
 
 	for( ;; )
 	{
-		switchDebugPin();
+		debugPinPulse();
 		printStatus(getState(), adcVal);
 
 	}

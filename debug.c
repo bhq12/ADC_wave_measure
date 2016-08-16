@@ -13,8 +13,7 @@ void initialiseDebugging(){
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOH);
 	//GPIOPinTypeGPIOOutput(GPIO_PORTH_BASE, GPIO_PIN_2);
 	GPIODirModeSet (GPIO_PORTH_BASE, GPIO_PIN_2, GPIO_DIR_MODE_OUT);
-	GPIOPinWrite(GPIO_PORTH_BASE, GPIO_PIN_2, 0xFF);
-	pinOn = 1;
+	debugPinOff();
 
 }
 
@@ -25,17 +24,20 @@ void debugPinOn(){
 
 void debugPinOff(){
 	pinOn = 0;
-	GPIOPinWrite(GPIO_PORTH_BASE, GPIO_PIN_2, 0x00);
+	GPIOPinWrite(GPIO_PORTH_BASE, GPIO_PIN_2, 0);
 }
 
-//TODO: doesn't appear to set pin low, 0x00 wrong value?
+void debugPinPulse(){
+
+	debugPinOn();
+	debugPinOff();
+}
+
 void switchDebugPin(){
 	if(pinOn == 1){
-		pinOn = 0;
-		GPIOPinWrite(GPIO_PORTH_BASE, GPIO_PIN_2, 0x00);
+		debugPinOff();
 	}
 	else if (pinOn == 0){
-		pinOn = 1;
-		GPIOPinWrite(GPIO_PORTH_BASE, GPIO_PIN_2, 0xFF);
+		debugPinOn();
 	}
 }
