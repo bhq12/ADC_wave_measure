@@ -7,6 +7,7 @@
 #include "queue.h"
 #include "state.h"
 #include "projectTasks.h"
+#include "debug.h"
 
 
 xQueueHandle xADCQueue;
@@ -22,6 +23,7 @@ void screenDrawTask( )
 
 	for( ;; )
 	{
+		switchDebugPin();
 		printStatus(getState(), adcVal);
 
 	}
