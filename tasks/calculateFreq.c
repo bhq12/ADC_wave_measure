@@ -6,6 +6,7 @@
 #include "FreeRTOS.h"
 #include "queue.h"
 #include "projectTasks.h"
+#define ADC_FREQUENCY 10000
 xQueueHandle xADCQueue;
 xQueueHandle xFrequencyQueue;
 
@@ -22,10 +23,13 @@ void calculateFrequencyTask( )
 	unsigned long long total = 0;
 	unsigned long long numerator = 0;
 	unsigned long long denominator = 0;
-	unsigned long long weightedMovingAverage = 0;
-	xSamplesQueue = xQueueCreate(1000, sizeof (unsigned long));
+	unsigned long long averageDuty = 0;
+	unsigned long long crossing = 0;
+	int isHigh;
+	int wasHigh;
+	unsigned long long lastCrossing = 0;
+	xSamplesQueue = xQueueCreate(100, sizeof (unsigned long));
 
-	float samplingPeriod = 0.1; //0.1s or 100ms
 	while(1){
 
 		xQueueReceive(xADCQueue, &adcVal, 100);
@@ -34,22 +38,36 @@ void calculateFrequencyTask( )
 
 		if(adcVal > 512){
 			dutyOfSample = 100;
+			isHigh = true;
 		}
 		else{
 			dutyOfSample = 0;
+			isHigh = false;
 		}
+
+
 		xQueueReceive(xADCQueue, &pastSample, 100);
-		//weighted moving average, see https://en.wikipedia.org/wiki/Moving_average#Weighted_moving_average
+
 		denominator += samples;
 		numerator = numerator + samples * adcVal - total;
 
 		total = total + adcVal - pastSample;
-		weightedMovingAverage = numerator / denominator;
+		//weighted moving average, see https://en.wikipedia.org/wiki/Moving_average#Weighted_moving_average
+		averageDuty = numerator / denominator;
+
+		if(wasHigh && !isHigh){
+			//high to low transition
+			lastCrossing = crossing;
+			crossing = samples;
+		}
+
+		frequency = ADC_FREQUENCY / (crossing - lastCrossing);
 
 
 
 		//frequency = count * samplingPeriod;
 		xQueueSend(xFrequencyQueue, &frequency, 10);
+		wasHigh = isHigh;
 	}
 }
 
