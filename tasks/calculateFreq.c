@@ -6,18 +6,18 @@
 #include "FreeRTOS.h"
 #include "queue.h"
 #include "projectTasks.h"
-#define ADC_FREQUENCY 10000
+#define ADC_FREQUENCY 1000
 xQueueHandle xADCQueue;
 xQueueHandle xFrequencyQueue;
 
 xQueueHandle xSamplesQueue;
 
-void calculateFrequencyTask( )
+void calculateFrequencyTask()
 {
 	unsigned long adcVal;
 	unsigned long pastSample;
 	int dutyCycle = 0;
-	float frequency;
+	unsigned long frequency = 0;
 	unsigned long dutyOfSample = 0;
 	unsigned long long samples = 0;
 	unsigned long long total = 0;
@@ -59,9 +59,10 @@ void calculateFrequencyTask( )
 			//high to low transition
 			lastCrossing = crossing;
 			crossing = samples;
+			frequency = ADC_FREQUENCY / (crossing - lastCrossing);
 		}
 
-		frequency = ADC_FREQUENCY / (crossing - lastCrossing);
+
 
 
 

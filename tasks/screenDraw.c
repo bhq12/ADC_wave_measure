@@ -62,7 +62,7 @@ void printStatus(unsigned long adcVal){
 }
 
 void printADC(){
-	unsigned long adcVal = receiveFromQueue(xADCQueue);
+	unsigned long adcVal = 10;//receiveFromQueue(xADCQueue);
 	char adcMessage [25];
 	snprintf (adcMessage, sizeof(adcMessage), "ADC%d val:", getState());
 
