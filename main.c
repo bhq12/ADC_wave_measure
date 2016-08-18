@@ -69,7 +69,7 @@ const char *pcTextForTask1 = "Task 1";
 const char *pcTextForTask2 = "Task 2";
 int canQueue = 1;
 xSemaphoreHandle currentlySampling;
-unsigned long adcBuffer [10000];
+unsigned long adcBuffer [4000];
 int adcBufferIndex;
 
 
@@ -113,7 +113,7 @@ ADCIntHandler(void){
 
 
 	//if(uxQueueMessagesWaitingFromISR(xADCQueue) > 4997){
-	if(adcBufferIndex > 9999){
+	if(adcBufferIndex > 3999){
 		canQueue = 0;
 		//xSemaphoreGiveFromISR(currentlySampling, pdFALSE);
 	}
@@ -228,35 +228,16 @@ void initFrequencyTimer(void){
 
 	// Enable the peripherals used by this example.
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER1);
-
-
-	//
-	// Enable the D peripheral used by the TIMER 1 pin CPP2.(!! The counter will not work if the peripheral is not enabled)
-	//
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
-
-	//
-	// This function takes one of the valid names for a Timer pin and configures
-	// the pin for its Timer functionality depending on the part that is defined.
-	//
-	PinTypeTimer(CCP2);
 
 	// Enable processor interrupts.
 	IntMasterEnable();
 
 	// Configure the two 32-bit periodic timers.
 	TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
-	TimerConfigure(TIMER1_BASE, TIMER_CFG_A_CAP_COUNT);
 
 	// This function configures the timer load value; if the timer is running
 	// then the value is immediately loaded into the timer.
 	TimerLoadSet(TIMER0_BASE, TIMER_A, SysCtlClockGet()/2);//8000000/10=80000=100 milliseconds
-
-	//TimerLoadSet(TIMER1_BASE, TIMER_A,10000);
-	// This function configures the signal edge(s) that triggers the
-	// timer when in capture mode.
-	TimerControlEvent(TIMER1_BASE,TIMER_A,TIMER_EVENT_POS_EDGE);
 
 	// Setup the interrupt for the Timer0-TimerA timeouts.
 	IntEnable(INT_TIMER0A);
@@ -264,7 +245,6 @@ void initFrequencyTimer(void){
 
 	// Enable the timers.
 	TimerEnable(TIMER0_BASE, TIMER_A);
-	TimerEnable(TIMER1_BASE, TIMER_A);
 }
 
 

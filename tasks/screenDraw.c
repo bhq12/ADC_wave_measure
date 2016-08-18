@@ -12,6 +12,7 @@
 
 xQueueHandle xADCQueue;
 xQueueHandle xFrequencyQueue;
+unsigned long period; //measured in microseconds
 
 void screenDrawTask( )
 {
@@ -40,7 +41,7 @@ void printStatus(unsigned long adcVal){
 
 
 	float frequency = 22;
-	float period = 0.02;
+
 	float amplitude = 0.8;
 	float dutyCycle = 24.5;
 
@@ -56,7 +57,7 @@ void printStatus(unsigned long adcVal){
 	}
 
 	printFrequency();
-	//printPeriod(period);
+	//printPeriod();
 	printADC();
 
 }
@@ -86,6 +87,7 @@ void printADC(){
 
 void printFrequency(){
 	unsigned long frequency = receiveFromQueue(xFrequencyQueue);
+	period = 1000000 / frequency;
 	char message [8];
 
 
@@ -103,10 +105,10 @@ void printFrequency(){
 
 }
 
-void printPeriod(float period){
+void printPeriod(){
 	char message [8];
 
-	snprintf (message, sizeof(message), "%.2fms", period);
+	snprintf (message, sizeof(message), "%.2fus", period);
 	//IntMasterDisable();
 	RIT128x96x4StringDraw(message, 75, 70, 'm');
 	//IntMasterEnable();

@@ -129,7 +129,7 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // Timer 0 subtimer B
     IntDefaultHandler,                      	// Timer 1 subtimer A
 	IntDefaultHandler,                      // Timer 1 subtimer B
-	TimerADCHandler,                      // Timer 2 subtimer A
+	IntDefaultHandler,                      // Timer 2 subtimer A
     IntDefaultHandler,                      // Timer 2 subtimer B
     IntDefaultHandler,                      // Analog Comparator 0
     IntDefaultHandler,                      // Analog Comparator 1
@@ -232,8 +232,6 @@ int buttonReset;
 static void
 ButtonHandler(void)
 {
-	unsigned long time = TimerValueGet(TIMER0_BASE,TIMER_A);
-
 	GPIOPinIntClear (GPIO_PORTG_BASE, BUTTON_PINS);
 	int three = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_3);
 	int four = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_4);
@@ -241,11 +239,11 @@ ButtonHandler(void)
 	int six = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_6);
 	int seven = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_7);
 
-	//if( (!three || !four || !five || !six || !seven) && buttonReset){
+	if( (!three || !four || !five || !six || !seven) && buttonReset){
 		changeState();
-		//buttonReset = 0;
+		buttonReset = 0;
 		//xQueueSendFromISR(xScreenStateQueue, 1, pdFALSE);
-	//}
+	}
 
 }
 
@@ -333,6 +331,6 @@ TimerFrequencyHandler(void)
 	// Reset the counter value to 10000
 	//
 	TimerLoadSet(TIMER0_BASE, TIMER_A, SysCtlClockGet()/2);
-	TimerLoadSet(TIMER1_BASE, TIMER_A,100000);
+
 
 }

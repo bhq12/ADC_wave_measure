@@ -23,36 +23,38 @@ xQueueHandle xSamplesQueue;
 void calculateFrequencyTask()
 {
 	unsigned long adcVal;
-	unsigned long pastSample;
-	int dutyCycle = 0;
 	unsigned long frequency = 0;
-	unsigned long dutyOfSample = 0;
-	unsigned long long samples = 0;
-	unsigned long long total = 0;
-	unsigned long long numerator = 0;
-	unsigned long long denominator = 0;
-	unsigned long long averageDuty = 0;
-	unsigned long long crossing = 0;
+	unsigned long  samples = 0;
+	unsigned long crossing = 0;
 	int isHigh;
 	int wasHigh;
 	unsigned long long lastCrossing = 0;
-	xSamplesQueue = xQueueCreate(10, sizeof (unsigned long));
 	int frequencyCount = 0;
+	int highSamples = 0;
+	unsigned long dutyCycle;
+
+	unsigned long max = 512;
+	unsigned long min = 512;
+	unsigned long average = 512;
 
 	while(1){
 		if(!canQueue){
 
 			while(adcBufferIndex > 0){
 
-				//xQueueReceive(xADCQueue, &adcVal, 0);
 				adcVal = adcBuffer[adcBufferIndex];
-
 				samples++;
 
+				if(adcVal > max && !(adcVal > 1024)){
+					max = adcVal;
+				}
+				if(adcVal < min){
+					min = adcVal;
+				}
 
-
-				if(adcVal > 512){
+				if(adcVal > average){
 					isHigh = true;
+					highSamples++;
 				}
 				else{
 					isHigh = false;
@@ -62,29 +64,29 @@ void calculateFrequencyTask()
 					//high to low transition
 					lastCrossing = crossing;
 					crossing = samples;
-					frequency += ADC_FREQUENCY / (crossing - lastCrossing);
+					if(crossing != lastCrossing){
+						frequency += ADC_FREQUENCY / (crossing - lastCrossing);
+					}
+
 					frequencyCount++;
 				}
 
-
-
-
-
-				//frequency = count * samplingPeriod;
-
 				wasHigh = isHigh;
-				//xSemaphoreGive(currentlySampling);
 				adcBufferIndex--;
+				average = (max + min) / 2;
 
 
 			}
+			dutyCycle = 100 * highSamples / samples;
 			frequency = frequency / frequencyCount;
-			xQueueSend(xFrequencyQueue, &frequency, 0);
+			xQueueSend(xFrequencyQueue, &frequency, 100);
 			frequency = 0;
 			frequencyCount = 0;
 			canQueue = 1;
-			//xSemaphoreTake(currentlySampling, 10);
-
+			samples = 0;
+			highSamples = 0;
+			max = 0;
+			min = 1024;
 		}
 
 
