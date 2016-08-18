@@ -6,9 +6,17 @@
 #include "FreeRTOS.h"
 #include "queue.h"
 #include "projectTasks.h"
-#define ADC_FREQUENCY 1000
+#include "semphr.h"
+#define ADC_FREQUENCY 125000
+extern xSemaphoreHandle currentlySampling;
+extern int canQueue;
 xQueueHandle xADCQueue;
 xQueueHandle xFrequencyQueue;
+
+extern unsigned long adcBuffer [10000];
+extern int adcBufferIndex;
+
+
 
 xQueueHandle xSamplesQueue;
 
@@ -28,47 +36,58 @@ void calculateFrequencyTask()
 	int isHigh;
 	int wasHigh;
 	unsigned long long lastCrossing = 0;
-	xSamplesQueue = xQueueCreate(100, sizeof (unsigned long));
+	xSamplesQueue = xQueueCreate(10, sizeof (unsigned long));
+	int frequencyCount = 0;
 
 	while(1){
+		if(!canQueue){
 
-		xQueueReceive(xADCQueue, &adcVal, 100);
-		xQueueSend(xSamplesQueue, &adcVal, 10);
-		samples++;
+			while(adcBufferIndex > 0){
 
-		if(adcVal > 512){
-			dutyOfSample = 100;
-			isHigh = true;
+				//xQueueReceive(xADCQueue, &adcVal, 0);
+				adcVal = adcBuffer[adcBufferIndex];
+
+				samples++;
+
+
+
+				if(adcVal > 512){
+					isHigh = true;
+				}
+				else{
+					isHigh = false;
+				}
+
+				if(wasHigh && !isHigh){
+					//high to low transition
+					lastCrossing = crossing;
+					crossing = samples;
+					frequency += ADC_FREQUENCY / (crossing - lastCrossing);
+					frequencyCount++;
+				}
+
+
+
+
+
+				//frequency = count * samplingPeriod;
+
+				wasHigh = isHigh;
+				//xSemaphoreGive(currentlySampling);
+				adcBufferIndex--;
+
+
+			}
+			frequency = frequency / frequencyCount;
+			xQueueSend(xFrequencyQueue, &frequency, 0);
+			frequency = 0;
+			frequencyCount = 0;
+			canQueue = 1;
+			//xSemaphoreTake(currentlySampling, 10);
+
 		}
-		else{
-			dutyOfSample = 0;
-			isHigh = false;
-		}
 
 
-		xQueueReceive(xADCQueue, &pastSample, 100);
-
-		denominator += samples;
-		numerator = numerator + samples * adcVal - total;
-
-		total = total + adcVal - pastSample;
-		//weighted moving average, see https://en.wikipedia.org/wiki/Moving_average#Weighted_moving_average
-		averageDuty = numerator / denominator;
-
-		if(wasHigh && !isHigh){
-			//high to low transition
-			lastCrossing = crossing;
-			crossing = samples;
-			frequency = ADC_FREQUENCY / (crossing - lastCrossing);
-		}
-
-
-
-
-
-		//frequency = count * samplingPeriod;
-		xQueueSend(xFrequencyQueue, &frequency, 10);
-		wasHigh = isHigh;
 	}
 }
 

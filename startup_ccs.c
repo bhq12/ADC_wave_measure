@@ -32,6 +32,7 @@
 #include "portable/portmacro.h"
 #include "driverlib/timer.h"
 #include "state.h"
+//#include "debug.h"
 #include <stdio.h>
 /* Demo includes. */
 #include "demo_code\basic_io.h"
@@ -240,11 +241,11 @@ ButtonHandler(void)
 	int six = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_6);
 	int seven = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_7);
 
-	if( (!three || !four || !five || !six || !seven) && buttonReset){
+	//if( (!three || !four || !five || !six || !seven) && buttonReset){
 		changeState();
-		buttonReset = 0;
+		//buttonReset = 0;
 		//xQueueSendFromISR(xScreenStateQueue, 1, pdFALSE);
-	}
+	//}
 
 }
 
@@ -256,21 +257,53 @@ ButtonHandler(void)
 static void
 TimerADCHandler(void)
 {
-	// Clear the timer interrupt.
+//	//debugPinPulse();
+//	// Clear the timer interrupt.
+//	TimerIntClear(TIMER2_BASE, TIMER_TIMA_TIMEOUT);
+//
+//	unsigned long sample[4] = {0};
+//
+//	//Triggers an ADC sampling, using sequence number 2
+//	ADCProcessorTrigger(ADC0_BASE, 2);
+//
+//	//Wait for the sampling to finish
+//	while (!ADCIntStatus(ADC0_BASE, 2, false)) {
+//	}
+//
+//	//Obtain the sample
+//	ADCSequenceDataGet(ADC0_BASE, 2, sample);
+//
+//	if(getState()){
+//		xQueueSendFromISR(xADCQueue, &sample[1], pdFALSE);
+//	}
+//	else{
+//		xQueueSendFromISR(xADCQueue, &sample[0], pdFALSE);
+//	}
+//	TimerLoadSet(TIMER2_BASE, TIMER_A, SysCtlClockGet()/10000);//timer expires 10,000 times per second
+
+	//trigger ADC sampling for next interrupt so no wait loop needed
+	//ADCProcessorTrigger(ADC0_BASE, 2);
+
+}
+
+static void
+ADCIntHandler(void){
+
+// Clear the timer interrupt.
 	TimerIntClear(TIMER2_BASE, TIMER_TIMA_TIMEOUT);
 
 	unsigned long sample[4] = {0};
-
-	//Triggers an ADC sampling, using sequence number 2
+//
+//	//Triggers an ADC sampling, using sequence number 2
 	ADCProcessorTrigger(ADC0_BASE, 2);
-
-	//Wait for the sampling to finish
+//
+//	//Wait for the sampling to finish
 	while (!ADCIntStatus(ADC0_BASE, 2, false)) {
 	}
-
-	//Obtain the sample
+//
+//	//Obtain the sample
 	ADCSequenceDataGet(ADC0_BASE, 2, sample);
-
+//
 	if(getState()){
 		xQueueSendFromISR(xADCQueue, &sample[1], pdFALSE);
 	}
@@ -280,8 +313,7 @@ TimerADCHandler(void)
 	TimerLoadSet(TIMER2_BASE, TIMER_A, SysCtlClockGet()/10000);//timer expires 10,000 times per second
 
 	//trigger ADC sampling for next interrupt so no wait loop needed
-	//ADCProcessorTrigger(ADC0_BASE, 2);
-
+	ADCProcessorTrigger(ADC0_BASE, 2);
 }
 
 

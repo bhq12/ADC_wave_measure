@@ -53,7 +53,7 @@
 #include "state.h"
 #include "tasks/projectTasks.h"
 #include "debug.h"
-
+#include "semphr.h"
 
 /* Used as a loop counter to create a very crude delay. */
 #define mainDELAY_LOOP_COUNT		( 0xfffff )
@@ -67,37 +67,109 @@ defined const and off the stack to ensure they remain valid when the tasks are
 executing. */
 const char *pcTextForTask1 = "Task 1";
 const char *pcTextForTask2 = "Task 2";
+int canQueue = 1;
+xSemaphoreHandle currentlySampling;
+unsigned long adcBuffer [10000];
+int adcBufferIndex;
 
 
 
-void initADC(void){
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
-	GPIOPinTypeADC(GPIO_PORTA_BASE, GPIO_PIN_1); //ADC1
-	GPIOPinTypeADC(GPIO_PORTB_BASE, GPIO_PIN_1); //ADC0
 
-	//Set up ADC0 to use sequence number 2. This means that
-	//
-	//ADC_TRIGGER_PROCESSOR means that we can cause the processor
-	//to trigger an ADC sample, which allows us to later read a sample
-	ADCSequenceConfigure(ADC0_BASE, 2, ADC_TRIGGER_PROCESSOR, 0);
+//void initADC(void){
+//	SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
+//	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+//	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+//	GPIOPinTypeADC(GPIO_PORTA_BASE, GPIO_PIN_1); //ADC1
+//	GPIOPinTypeADC(GPIO_PORTB_BASE, GPIO_PIN_1); //ADC0
+//
+//	//Set up ADC0 to use sequence number 2. This means that
+//	//
+//	//ADC_TRIGGER_PROCESSOR means that we can cause the processor
+//	//to trigger an ADC sample, which allows us to later read a sample
+//	ADCSequenceConfigure(ADC0_BASE, 2, ADC_TRIGGER_PROCESSOR, 0);
+//
+//
+//	//Configure a step of the sample sequencer.
+//	//In this case, we are configuring ADC0 to use sequence number 2,
+//	//and we are configuring step 0. Step 0 will use input channel 0
+//	//ADCSequenceStepConfigure(ADC0_BASE, 2, 0, ADC_CTL_CH0 | ADC_CTL_IE | ADC_CTL_END);
+//	ADCSequenceStepConfigure(ADC0_BASE, 2, 0, ADC_CTL_CH0);
+//
+//	ADCSequenceStepConfigure(ADC0_BASE, 2, 1, ADC_CTL_CH1 | ADC_CTL_IE | ADC_CTL_END);
+//	//Enable sample sequence 2
+//	ADCSequenceEnable(ADC0_BASE, 2);
+//
+//	//Clear the source of a sample sequence interrupt
+//	//This means that the interrupt no longer asserts
+//	ADCIntClear(ADC0_BASE, 2);
+//}
 
 
-	//Configure a step of the sample sequencer.
-	//In this case, we are configuring ADC0 to use sequence number 2,
-	//and we are configuring step 0. Step 0 will use input channel 0
-	//ADCSequenceStepConfigure(ADC0_BASE, 2, 0, ADC_CTL_CH0 | ADC_CTL_IE | ADC_CTL_END);
-	ADCSequenceStepConfigure(ADC0_BASE, 2, 0, ADC_CTL_CH0);
+static void
+ADCIntHandler(void){
 
-	ADCSequenceStepConfigure(ADC0_BASE, 2, 1, ADC_CTL_CH1 | ADC_CTL_IE | ADC_CTL_END);
-	//Enable sample sequence 2
-	ADCSequenceEnable(ADC0_BASE, 2);
+// Clear the timer interrupt.
+	ADCIntClear(ADC_BASE, 2);
 
-	//Clear the source of a sample sequence interrupt
-	//This means that the interrupt no longer asserts
-	ADCIntClear(ADC0_BASE, 2);
+
+	//if(uxQueueMessagesWaitingFromISR(xADCQueue) > 4997){
+	if(adcBufferIndex > 9999){
+		canQueue = 0;
+		//xSemaphoreGiveFromISR(currentlySampling, pdFALSE);
+	}
+
+
+	unsigned long sample[4] = {0};
+//
+//
+//
+//	//Obtain the sample
+	ADCSequenceDataGet(ADC_BASE, 2, sample);
+//
+	if(canQueue){
+		if(getState()){
+			//xQueueSendFromISR(xADCQueue, &sample[1], pdFALSE);
+			adcBuffer[adcBufferIndex] = sample[1];
+		}
+		else{
+			//xQueueSendFromISR(xADCQueue, &sample[0], pdFALSE);
+			adcBuffer[adcBufferIndex] = sample[0];
+		}
+		adcBufferIndex++;
+	}
+
+
+	//TimerLoadSet(TIMER2_BASE, TIMER_A, SysCtlClockGet()/10000);//timer expires 10,000 times per second
+
+	//trigger ADC sampling for next interrupt so no wait loop needed
+	//ADCProcessorTrigger(ADC0_BASE, 2);
 }
+
+void initADC() {
+
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC);
+
+	SysCtlADCSpeedSet(SYSCTL_ADCSPEED_250KSPS);
+
+    ADCSequenceDisable(ADC_BASE, 2);
+
+	ADCSequenceConfigure(ADC_BASE, 2, ADC_TRIGGER_ALWAYS, 0);
+
+	ADCSequenceStepConfigure(ADC_BASE, 2, 0, ADC_CTL_CH0);
+
+	ADCSequenceStepConfigure(ADC_BASE, 2, 1, ADC_CTL_CH1 | ADC_CTL_IE | ADC_CTL_END);
+
+	ADCSequenceEnable(ADC_BASE, 2);
+
+	ADCIntRegister(ADC_BASE, 2, ADCIntHandler);
+
+	ADCIntEnable(ADC_BASE, 2);
+
+	ADCIntClear(ADC_BASE, 2);
+}
+
+
+
 
 //*****************************************************************************
 //
@@ -137,7 +209,7 @@ void initADCTimer(void){
 	//
 	TimerConfigure(TIMER2_BASE, TIMER_CFG_PERIODIC);
 	TimerControlEvent(TIMER2_BASE, TIMER_A, TIMER_EVENT_BOTH_EDGES);
-	TimerLoadSet(TIMER2_BASE, TIMER_A, SysCtlClockGet()/10000);//timer expires 10,000 times per second
+	TimerLoadSet(TIMER2_BASE, TIMER_A, SysCtlClockGet()/1000);//timer expires 30,000 times per second
 
 	//
 	// Setup the interrupts for the timer timeouts.
@@ -209,12 +281,14 @@ int main( void )
 	initADC();
 	//initTimer();
 	initFrequencyTimer();
-	initADCTimer();
+	//initADCTimer();
 	initialiseState();
 	initialiseDebugging();
 
-	xADCQueue = xQueueCreate(10, sizeof (unsigned long));
+	adcBufferIndex = 0;
+	//xADCQueue = xQueueCreate(5000, sizeof (unsigned long));
 	xFrequencyQueue = xQueueCreate(10, sizeof (unsigned long));
+	currentlySampling = xSemaphoreCreateMutex();
 
 
 	/* Create one of the two tasks. */
@@ -231,7 +305,7 @@ int main( void )
 
 	//xTaskCreate( pollADCTask, "Task 2", 240, &adcVal, 1, NULL );
 	//xTaskCreate( makeNoiseTask, "Task 3", 240, (void*)NULL, 1, NULL );
-	//xTaskCreate( pollADCTask, "Task 3", 240, (void*)NULL, 1, NULL );
+	xTaskCreate( calculateFrequencyTask, "Task 3", 240, (void*)NULL, 1, NULL );
 
 	/* Start the scheduler so our tasks start executing. */
 	vTaskStartScheduler();	
