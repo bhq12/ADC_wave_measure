@@ -54,6 +54,7 @@
 #include "tasks/projectTasks.h"
 #include "debug.h"
 #include "semphr.h"
+#include "calculationPacket.h"
 
 /* Used as a loop counter to create a very crude delay. */
 #define mainDELAY_LOOP_COUNT		( 0xfffff )
@@ -71,38 +72,6 @@ int canQueue = 1;
 xSemaphoreHandle currentlySampling;
 unsigned long adcBuffer [4000];
 int adcBufferIndex;
-
-
-
-
-//void initADC(void){
-//	SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
-//	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
-//	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
-//	GPIOPinTypeADC(GPIO_PORTA_BASE, GPIO_PIN_1); //ADC1
-//	GPIOPinTypeADC(GPIO_PORTB_BASE, GPIO_PIN_1); //ADC0
-//
-//	//Set up ADC0 to use sequence number 2. This means that
-//	//
-//	//ADC_TRIGGER_PROCESSOR means that we can cause the processor
-//	//to trigger an ADC sample, which allows us to later read a sample
-//	ADCSequenceConfigure(ADC0_BASE, 2, ADC_TRIGGER_PROCESSOR, 0);
-//
-//
-//	//Configure a step of the sample sequencer.
-//	//In this case, we are configuring ADC0 to use sequence number 2,
-//	//and we are configuring step 0. Step 0 will use input channel 0
-//	//ADCSequenceStepConfigure(ADC0_BASE, 2, 0, ADC_CTL_CH0 | ADC_CTL_IE | ADC_CTL_END);
-//	ADCSequenceStepConfigure(ADC0_BASE, 2, 0, ADC_CTL_CH0);
-//
-//	ADCSequenceStepConfigure(ADC0_BASE, 2, 1, ADC_CTL_CH1 | ADC_CTL_IE | ADC_CTL_END);
-//	//Enable sample sequence 2
-//	ADCSequenceEnable(ADC0_BASE, 2);
-//
-//	//Clear the source of a sample sequence interrupt
-//	//This means that the interrupt no longer asserts
-//	ADCIntClear(ADC0_BASE, 2);
-//}
 
 
 static void
@@ -127,6 +96,7 @@ ADCIntHandler(void){
 	ADCSequenceDataGet(ADC_BASE, 2, sample);
 //
 	if(canQueue){
+		debugPinOn(GPIO_PIN_5 | GPIO_PIN_6);
 		if(getState()){
 			//xQueueSendFromISR(xADCQueue, &sample[1], pdFALSE);
 			adcBuffer[adcBufferIndex] = sample[1];
@@ -136,6 +106,7 @@ ADCIntHandler(void){
 			adcBuffer[adcBufferIndex] = sample[0];
 		}
 		adcBufferIndex++;
+		debugPinOff(GPIO_PIN_5 | GPIO_PIN_6);
 	}
 
 
@@ -189,42 +160,7 @@ void initButtons(void){
     IntEnable(INT_GPIOG);
 }
 
-//*****************************************************************************
-//
-//  Function to initialise the timer
-//
-//*****************************************************************************
-void initADCTimer(void){
-
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER2);
-
-
-	//
-	// Enable processor interrupts.
-	//
-	IntMasterEnable();
-
-	//
-	// Configure the two 32-bit periodic timers.
-	//
-	TimerConfigure(TIMER2_BASE, TIMER_CFG_PERIODIC);
-	TimerControlEvent(TIMER2_BASE, TIMER_A, TIMER_EVENT_BOTH_EDGES);
-	TimerLoadSet(TIMER2_BASE, TIMER_A, SysCtlClockGet()/1000);//timer expires 30,000 times per second
-
-	//
-	// Setup the interrupts for the timer timeouts.
-	//
-	IntPrioritySet(INT_TIMER2A, configKERNEL_INTERRUPT_PRIORITY);
-	TimerIntEnable(TIMER2_BASE, TIMER_TIMA_TIMEOUT);
-	IntEnable(INT_TIMER2A);
-	//
-	// Enable the timers.
-	//
-	TimerEnable(TIMER2_BASE, TIMER_A);
-}
-
-
-void initFrequencyTimer(void){
+void initDebouncingTimer(void){
 
 	// Enable the peripherals used by this example.
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
@@ -237,7 +173,7 @@ void initFrequencyTimer(void){
 
 	// This function configures the timer load value; if the timer is running
 	// then the value is immediately loaded into the timer.
-	TimerLoadSet(TIMER0_BASE, TIMER_A, SysCtlClockGet()/2);//8000000/10=80000=100 milliseconds
+	TimerLoadSet(TIMER0_BASE, TIMER_A, SysCtlClockGet()/2);//twice a second
 
 	// Setup the interrupt for the Timer0-TimerA timeouts.
 	IntEnable(INT_TIMER0A);
@@ -260,14 +196,13 @@ int main( void )
 	initButtons();
 	initADC();
 	//initTimer();
-	initFrequencyTimer();
-	//initADCTimer();
+	initDebouncingTimer();
 	initialiseState();
 	initialiseDebugging();
 
 	adcBufferIndex = 0;
 	//xADCQueue = xQueueCreate(5000, sizeof (unsigned long));
-	xFrequencyQueue = xQueueCreate(10, sizeof (unsigned long));
+	xScreenQueue = xQueueCreate(10, sizeof (Calculation));
 	currentlySampling = xSemaphoreCreateMutex();
 
 
@@ -285,7 +220,7 @@ int main( void )
 
 	//xTaskCreate( pollADCTask, "Task 2", 240, &adcVal, 1, NULL );
 	//xTaskCreate( makeNoiseTask, "Task 3", 240, (void*)NULL, 1, NULL );
-	xTaskCreate( calculateFrequencyTask, "Task 3", 240, (void*)NULL, 1, NULL );
+	xTaskCreate( calculateFrequencyTask, "Task 3", 240, (void*)NULL, 10, NULL );
 
 	/* Start the scheduler so our tasks start executing. */
 	vTaskStartScheduler();	

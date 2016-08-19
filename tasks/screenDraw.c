@@ -8,10 +8,12 @@
 #include "state.h"
 #include "projectTasks.h"
 #include "debug.h"
+#include "driverlib/gpio.h"
+#include "calculationPacket.h"
 
 
 xQueueHandle xADCQueue;
-xQueueHandle xFrequencyQueue;
+xQueueHandle xScreenQueue;
 unsigned long period; //measured in microseconds
 
 void screenDrawTask( )
@@ -24,23 +26,21 @@ void screenDrawTask( )
 
 	for( ;; )
 	{
-		debugPinPulse();
+
 		printStatus(getState(), adcVal);
+
 
 	}
 }
 
-unsigned long receiveFromQueue(xQueueHandle queue){
+Calculation receiveFromQueue(xQueueHandle queue){
 	const portTickType xTicksToWait = 100 / portTICK_RATE_MS;
-	unsigned long val = 0;
-	xQueueReceive(queue, &val, xTicksToWait);
-	return val;
+	Calculation calc;
+	xQueueReceive(queue, &calc, xTicksToWait);
+	return calc;
 }
 
 void printStatus(unsigned long adcVal){
-
-
-	float frequency = 22;
 
 	float amplitude = 0.8;
 	float dutyCycle = 24.5;
@@ -58,48 +58,26 @@ void printStatus(unsigned long adcVal){
 
 	printFrequency();
 	//printPeriod();
-	printADC();
-
-}
-
-void printADC(){
-	unsigned long adcVal = 10;//receiveFromQueue(xADCQueue);
-	char adcMessage [25];
-	snprintf (adcMessage, sizeof(adcMessage), "ADC%d val:", getState());
-
-	//IntMasterDisable();
-	RIT128x96x4StringDraw(adcMessage, 0, 50, 'm');
-	//IntMasterEnable();
-	if(adcVal < 100000){
-		snprintf (adcMessage, sizeof(adcMessage), "%lu    ", adcVal);
-	}
-	else{
-		snprintf (adcMessage, sizeof(adcMessage), "%lu", adcVal);
-	}
-
-
-	if(adcVal != 0){
-		RIT128x96x4StringDraw(adcMessage, 75, 50, 'm');
-	}
-	//IntMasterDisable();
 
 }
 
 void printFrequency(){
-	unsigned long frequency = receiveFromQueue(xFrequencyQueue);
-	period = 1000000 / frequency;
+
+	Calculation calc = receiveFromQueue(xScreenQueue);
+
+
 	char message [8];
 
 
-	if(frequency < 100000){
-		snprintf (message, sizeof(message), "%lu    ", frequency);
+	if(calc.frequency < 100000){
+		snprintf (message, sizeof(message), "%lu    ", calc.frequency);
 	}
 	else{
-		snprintf (message, sizeof(message), "%lu", frequency);
+		snprintf (message, sizeof(message), "%lu", calc.frequency);
 	}
 
 
-	if(frequency != 0){
+	if(calc.frequency != 0){
 		RIT128x96x4StringDraw(message, 75, 60, 'm');
 	}
 

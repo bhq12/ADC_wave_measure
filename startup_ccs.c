@@ -48,11 +48,10 @@ static void NmiSR(void);
 static void FaultISR(void);
 static void IntDefaultHandler(void);
 static void ButtonHandler(void);
-static void TimerADCHandler(void);
-static void TimerFrequencyHandler(void);
+static void TimerDebouncingHandler(void);
 
 extern xQueueHandle xADCQueue;
-extern xQueueHandle xFrequencyQueue;
+extern xQueueHandle xScreenQueue;
 //*****************************************************************************
 //
 // External declaration for the reset handler that is to be called when the
@@ -125,7 +124,7 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // ADC Sequence 2
     IntDefaultHandler,                      // ADC Sequence 3
     IntDefaultHandler,                      // Watchdog timer
-    TimerFrequencyHandler,                      	// Timer 0 subtimer A
+    TimerDebouncingHandler,                      	// Timer 0 subtimer A
     IntDefaultHandler,                      // Timer 0 subtimer B
     IntDefaultHandler,                      	// Timer 1 subtimer A
 	IntDefaultHandler,                      // Timer 1 subtimer B
@@ -233,90 +232,22 @@ static void
 ButtonHandler(void)
 {
 	GPIOPinIntClear (GPIO_PORTG_BASE, BUTTON_PINS);
-	int three = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_3);
-	int four = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_4);
-	int five = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_5);
-	int six = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_6);
-	int seven = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_7);
+	int up = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_3);
+	int down = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_4);
+	int left = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_5);
+	int right = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_6);
+	int select = GPIOPinRead (GPIO_PORTG_BASE, GPIO_PIN_7);
 
-	if( (!three || !four || !five || !six || !seven) && buttonReset){
+	if( (!left || !right) && buttonReset){
 		changeState();
 		buttonReset = 0;
-		//xQueueSendFromISR(xScreenStateQueue, 1, pdFALSE);
 	}
 
 }
 
-//*****************************************************************************
-//
-// The interrupt handler for the first timer interrupt.
-//
-//*****************************************************************************
-static void
-TimerADCHandler(void)
-{
-//	//debugPinPulse();
-//	// Clear the timer interrupt.
-//	TimerIntClear(TIMER2_BASE, TIMER_TIMA_TIMEOUT);
-//
-//	unsigned long sample[4] = {0};
-//
-//	//Triggers an ADC sampling, using sequence number 2
-//	ADCProcessorTrigger(ADC0_BASE, 2);
-//
-//	//Wait for the sampling to finish
-//	while (!ADCIntStatus(ADC0_BASE, 2, false)) {
-//	}
-//
-//	//Obtain the sample
-//	ADCSequenceDataGet(ADC0_BASE, 2, sample);
-//
-//	if(getState()){
-//		xQueueSendFromISR(xADCQueue, &sample[1], pdFALSE);
-//	}
-//	else{
-//		xQueueSendFromISR(xADCQueue, &sample[0], pdFALSE);
-//	}
-//	TimerLoadSet(TIMER2_BASE, TIMER_A, SysCtlClockGet()/10000);//timer expires 10,000 times per second
-
-	//trigger ADC sampling for next interrupt so no wait loop needed
-	//ADCProcessorTrigger(ADC0_BASE, 2);
-
-}
 
 static void
-ADCIntHandler(void){
-
-// Clear the timer interrupt.
-	TimerIntClear(TIMER2_BASE, TIMER_TIMA_TIMEOUT);
-
-	unsigned long sample[4] = {0};
-//
-//	//Triggers an ADC sampling, using sequence number 2
-	ADCProcessorTrigger(ADC0_BASE, 2);
-//
-//	//Wait for the sampling to finish
-	while (!ADCIntStatus(ADC0_BASE, 2, false)) {
-	}
-//
-//	//Obtain the sample
-	ADCSequenceDataGet(ADC0_BASE, 2, sample);
-//
-	if(getState()){
-		xQueueSendFromISR(xADCQueue, &sample[1], pdFALSE);
-	}
-	else{
-		xQueueSendFromISR(xADCQueue, &sample[0], pdFALSE);
-	}
-	TimerLoadSet(TIMER2_BASE, TIMER_A, SysCtlClockGet()/10000);//timer expires 10,000 times per second
-
-	//trigger ADC sampling for next interrupt so no wait loop needed
-	ADCProcessorTrigger(ADC0_BASE, 2);
-}
-
-
-static void
-TimerFrequencyHandler(void)
+TimerDebouncingHandler(void)
 {
 	TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
 

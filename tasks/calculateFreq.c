@@ -6,15 +6,18 @@
 #include "FreeRTOS.h"
 #include "queue.h"
 #include "projectTasks.h"
+#include "debug.h"
 #include "semphr.h"
+#include "calculationPacket.h"
 #define ADC_FREQUENCY 125000
 extern xSemaphoreHandle currentlySampling;
 extern int canQueue;
 xQueueHandle xADCQueue;
-xQueueHandle xFrequencyQueue;
+xQueueHandle xScreenQueue;
 
 extern unsigned long adcBuffer [10000];
 extern int adcBufferIndex;
+
 
 
 
@@ -23,11 +26,14 @@ xQueueHandle xSamplesQueue;
 void calculateFrequencyTask()
 {
 	unsigned long adcVal;
-	unsigned long frequency = 0;
+	unsigned long period;//microseconds
+	unsigned long frequency = 0;//hz
+	unsigned long averagePeriod = 0;
 	unsigned long  samples = 0;
 	unsigned long crossing = 0;
 	int isHigh;
 	int wasHigh;
+	unsigned long amplitude;
 	unsigned long long lastCrossing = 0;
 	int frequencyCount = 0;
 	int highSamples = 0;
@@ -41,7 +47,7 @@ void calculateFrequencyTask()
 		if(!canQueue){
 
 			while(adcBufferIndex > 0){
-
+				debugPinOn(GPIO_PIN_4);
 				adcVal = adcBuffer[adcBufferIndex];
 				samples++;
 
@@ -64,11 +70,14 @@ void calculateFrequencyTask()
 					//high to low transition
 					lastCrossing = crossing;
 					crossing = samples;
-					if(crossing != lastCrossing){
-						frequency += ADC_FREQUENCY / (crossing - lastCrossing);
-					}
+					if(frequencyCount != 0){
+						//frequency += ADC_FREQUENCY / (crossing - lastCrossing);
+						averagePeriod += (crossing - lastCrossing);
 
+					}
 					frequencyCount++;
+
+
 				}
 
 				wasHigh = isHigh;
@@ -78,8 +87,17 @@ void calculateFrequencyTask()
 
 			}
 			dutyCycle = 100 * highSamples / samples;
-			frequency = frequency / frequencyCount;
-			xQueueSend(xFrequencyQueue, &frequency, 100);
+			averagePeriod = averagePeriod / (frequencyCount - 1);
+			//frequency = frequency / frequencyCount;
+			frequency = ADC_FREQUENCY / averagePeriod;
+			period = 1000000 / frequency; //microseconds
+			amplitude = (max - min) * 3000 / 1024;
+			Calculation calc;
+			calc.frequency = frequency;
+			calc.period = period;
+			calc.amplitude = amplitude;
+			calc.dutyCycle = dutyCycle;
+			xQueueSend(xScreenQueue, &calc, 100);
 			frequency = 0;
 			frequencyCount = 0;
 			canQueue = 1;
@@ -87,6 +105,7 @@ void calculateFrequencyTask()
 			highSamples = 0;
 			max = 0;
 			min = 1024;
+			debugPinOff(GPIO_PIN_4);
 		}
 
 

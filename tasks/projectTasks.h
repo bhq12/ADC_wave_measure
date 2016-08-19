@@ -5,7 +5,7 @@
 #include "queue.h"
 
 extern xQueueHandle xADCQueue;
-extern xQueueHandle xFrequencyQueue;
+extern xQueueHandle xScreenQueue;
 
 //tasks in use
 extern void screenDrawTask();
