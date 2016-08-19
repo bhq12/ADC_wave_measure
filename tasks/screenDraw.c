@@ -27,7 +27,7 @@ void screenDrawTask( )
 	for( ;; )
 	{
 
-		printStatus(getState(), adcVal);
+		printStatus();
 
 
 	}
@@ -40,7 +40,7 @@ Calculation receiveFromQueue(xQueueHandle queue){
 	return calc;
 }
 
-void printStatus(unsigned long adcVal){
+void printStatus(){
 
 	float amplitude = 0.8;
 	float dutyCycle = 24.5;
@@ -56,9 +56,36 @@ void printStatus(unsigned long adcVal){
 		printAmplitude(amplitude);
 	}
 
-	printFrequency();
+	Calculation calc = receiveFromQueue(xScreenQueue);
+	printCalculation(calc);
+	//printFrequency();
 	//printPeriod();
 
+}
+
+void printCalculation(Calculation calc){
+
+	char data[15];
+
+	snprintf (data, sizeof(data), "%luHz  ", calc.frequency);
+	RIT128x96x4StringDraw(data, 75, 60, 'm');
+	memset(data, 0, sizeof data);
+
+
+	snprintf (data, sizeof(data), "%luus   ", calc.period);
+	RIT128x96x4StringDraw(data, 75, 70, 'm');
+	memset(data, 0, sizeof data);
+
+	if(getState()){
+		snprintf (data, sizeof(data), "%lu%%   ", calc.dutyCycle);
+		RIT128x96x4StringDraw(data, 75, 80, 'm');
+		memset(data, 0, sizeof data);
+	}
+	else{
+		snprintf (data, sizeof(data), "%lumV ", calc.amplitude);
+		RIT128x96x4StringDraw(data, 75, 80, 'm');
+		memset(data, 0, sizeof data);
+	}
 }
 
 void printFrequency(){
