@@ -4,15 +4,9 @@
 #include "FreeRTOS.h"
 #include "queue.h"
 
-extern xQueueHandle xADCQueue;
 extern xQueueHandle xScreenQueue;
 
-//tasks in use
 extern void screenDrawTask();
-extern void pollADCTask();
-extern void calculateFrequencyTask();
-//rubbish testing tasks
-extern void queueTestTask( void *pvParameters );
-extern void makeNoiseTask( unsigned long *pvParameters );
+extern void processADCDataTask();
 
 #endif

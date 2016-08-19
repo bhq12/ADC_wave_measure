@@ -50,8 +50,6 @@ static void IntDefaultHandler(void);
 static void ButtonHandler(void);
 static void TimerDebouncingHandler(void);
 
-extern xQueueHandle xADCQueue;
-extern xQueueHandle xScreenQueue;
 //*****************************************************************************
 //
 // External declaration for the reset handler that is to be called when the

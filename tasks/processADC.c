@@ -9,21 +9,13 @@
 #include "debug.h"
 #include "semphr.h"
 #include "calculationPacket.h"
+#include "ADC.h"
+
 #define ADC_FREQUENCY 125000
-extern xSemaphoreHandle currentlySampling;
-extern int canQueue;
-xQueueHandle xADCQueue;
 xQueueHandle xScreenQueue;
-
-extern unsigned long adcBuffer [10000];
-extern int adcBufferIndex;
-
-
-
-
 xQueueHandle xSamplesQueue;
 
-void calculateFrequencyTask()
+void processADCDataTask()
 {
 	unsigned long adcVal;
 	unsigned long period;//microseconds
@@ -44,6 +36,17 @@ void calculateFrequencyTask()
 	unsigned long average = 512;
 
 	while(1){
+		xSemaphoreTake(sampling, 100);
+		Calculation calc;
+
+		calc.frequency = 10000;
+		calc.period = 100;
+		calc.amplitude = 500;
+		calc.dutyCycle = 50;
+
+		xQueueSend(xScreenQueue, &calc, 100);
+
+
 		if(!canQueue){
 
 			while(adcBufferIndex > 0){
@@ -107,6 +110,7 @@ void calculateFrequencyTask()
 			min = 1024;
 			debugPinOff(GPIO_PIN_4);
 		}
+
 
 
 	}

@@ -11,8 +11,6 @@
 #include "driverlib/gpio.h"
 #include "calculationPacket.h"
 
-
-xQueueHandle xADCQueue;
 xQueueHandle xScreenQueue;
 unsigned long period; //measured in microseconds
 
