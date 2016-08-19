@@ -1,4 +1,3 @@
-#include <peripherals.h>
 #include "include/FreeRTOS.h"
 #include "include/task.h"
 #include "queue.h"
