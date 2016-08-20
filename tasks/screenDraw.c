@@ -10,8 +10,10 @@
 #include "debug.h"
 #include "driverlib/gpio.h"
 #include "calculationPacket.h"
+#include "semphr.h"
 
 xQueueHandle xScreenQueue;
+xSemaphoreHandle screenQueue;
 unsigned long period; //measured in microseconds
 
 void screenDrawTask( )
@@ -24,7 +26,7 @@ void screenDrawTask( )
 
 	for( ;; )
 	{
-
+		xSemaphoreTake(screenQueue, 100);
 		printStatus();
 
 

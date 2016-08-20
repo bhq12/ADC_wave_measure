@@ -45,6 +45,7 @@ void processADCDataTask()
 		calc.dutyCycle = 50;
 
 		xQueueSend(xScreenQueue, &calc, 100);
+		xSemaphoreGive(screenQueue);
 
 
 		if(!canQueue){
@@ -101,6 +102,7 @@ void processADCDataTask()
 			calc.amplitude = amplitude;
 			calc.dutyCycle = dutyCycle;
 			xQueueSend(xScreenQueue, &calc, 100);
+			xSemaphoreGive(screenQueue);
 			frequency = 0;
 			frequencyCount = 0;
 			canQueue = 1;
@@ -110,6 +112,7 @@ void processADCDataTask()
 			min = 1024;
 			debugPinOff(GPIO_PIN_4);
 		}
+
 
 
 
