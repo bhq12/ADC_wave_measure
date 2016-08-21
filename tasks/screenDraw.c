@@ -27,7 +27,9 @@ void screenDrawTask( )
 	for( ;; )
 	{
 		xSemaphoreTake(screenQueue, 100);
+		debugPinOn(GPIO_PIN_6);
 		printStatus();
+		debugPinOff(GPIO_PIN_6);
 
 
 	}

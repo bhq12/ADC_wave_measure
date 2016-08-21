@@ -30,7 +30,7 @@ ADCIntHandler(void){
 	ADCSequenceDataGet(ADC_BASE, 2, sample);
 
 	if(canQueue){
-		debugPinOn(GPIO_PIN_5 | GPIO_PIN_6);
+		debugPinOn(GPIO_PIN_5);
 		if(getState()){
 			adcBuffer[adcBufferIndex] = sample[1];
 		}
@@ -38,7 +38,7 @@ ADCIntHandler(void){
 			adcBuffer[adcBufferIndex] = sample[0];
 		}
 		adcBufferIndex++;
-		debugPinOff(GPIO_PIN_5 | GPIO_PIN_6);
+		debugPinOff(GPIO_PIN_5);
 	}
 }
 

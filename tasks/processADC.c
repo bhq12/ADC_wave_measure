@@ -20,7 +20,7 @@ void processADCDataTask()
 	unsigned long adcVal;
 	unsigned long period;//microseconds
 	unsigned long frequency = 0;//hz
-	unsigned long averagePeriod = 0;
+	unsigned long periods = 0;
 	unsigned long  samples = 0;
 	unsigned long crossing = 0;
 	int isHigh;
@@ -37,7 +37,7 @@ void processADCDataTask()
 
 	while(1){
 		xSemaphoreTake(sampling, 100);
-		Calculation calc;
+		/*Calculation calc;
 
 		calc.frequency = 10000;
 		calc.period = 100;
@@ -45,7 +45,7 @@ void processADCDataTask()
 		calc.dutyCycle = 50;
 
 		xQueueSend(xScreenQueue, &calc, 100);
-		xSemaphoreGive(screenQueue);
+		xSemaphoreGive(screenQueue);*/
 
 
 		if(!canQueue){
@@ -76,7 +76,7 @@ void processADCDataTask()
 					crossing = samples;
 					if(frequencyCount != 0){
 						//frequency += ADC_FREQUENCY / (crossing - lastCrossing);
-						averagePeriod += (crossing - lastCrossing);
+						periods += (crossing - lastCrossing);
 
 					}
 					frequencyCount++;
@@ -91,11 +91,14 @@ void processADCDataTask()
 
 			}
 			dutyCycle = 100 * highSamples / samples;
-			averagePeriod = averagePeriod / (frequencyCount - 1);
+			//unsigned long periods = periods;
+			//periods = periods / (frequencyCount - 1);
+			float averagePeriod = (float)periods / (frequencyCount - 1);
+			float highAccuracyFrequency = ADC_FREQUENCY / averagePeriod;
 			//frequency = frequency / frequencyCount;
-			frequency = ADC_FREQUENCY / averagePeriod;
+			frequency = (unsigned long)highAccuracyFrequency;
 			period = 1000000 / frequency; //microseconds
-			amplitude = (max - min) * 3000 / 1024;
+			amplitude = (max - min) * 1500 / 1024;
 			Calculation calc;
 			calc.frequency = frequency;
 			calc.period = period;
@@ -110,6 +113,7 @@ void processADCDataTask()
 			highSamples = 0;
 			max = 0;
 			min = 1024;
+			periods = 0;
 			debugPinOff(GPIO_PIN_4);
 		}
 
