@@ -15,6 +15,14 @@ xSemaphoreHandle sampling;
 unsigned long adcBuffer [4000];
 int adcBufferIndex;
 
+void restartADCSampling(){
+	canQueue = 1;
+}
+
+int isCurrentlySampling(){
+	return canQueue;
+}
+
 static void
 ADCIntHandler(void){
 

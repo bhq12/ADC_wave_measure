@@ -48,7 +48,7 @@ void processADCDataTask()
 		xSemaphoreGive(screenQueue);*/
 
 
-		if(!canQueue){
+		if(!isCurrentlySampling()){
 
 			while(adcBufferIndex > 0){
 				debugPinOn(GPIO_PIN_4);
@@ -108,18 +108,15 @@ void processADCDataTask()
 			xSemaphoreGive(screenQueue);
 			frequency = 0;
 			frequencyCount = 0;
-			canQueue = 1;
+			;
 			samples = 0;
 			highSamples = 0;
 			max = 0;
 			min = 1024;
 			periods = 0;
+			restartADCSampling();
 			debugPinOff(GPIO_PIN_4);
 		}
-
-
-
-
 	}
 }
 

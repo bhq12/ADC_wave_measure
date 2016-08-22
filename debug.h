@@ -2,13 +2,13 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
-void initialiseDebugging();
+extern void initialiseDebugging();
 
-void debugPinOn();
+extern void debugPinOn(unsigned char pin);
 
-void debugPinOff();
+extern void debugPinOff(unsigned char pin);
 
-void switchDebugPin();
+extern void debugPinPulse(unsigned char pin);
 
 
 #endif
