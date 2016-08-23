@@ -31,7 +31,7 @@ int main( void )
 
 	adcBufferIndex = 0;
 	xScreenQueue = xQueueCreate(10, sizeof (Calculation));
-	sampling = xSemaphoreCreateMutex();
+	sampling = xSemaphoreCreateCounting(1, 0);;
 	screenQueueCount = xSemaphoreCreateCounting(10, 0);
 
 	xTaskCreate(screenDrawTask, "Task 1", 240 /*stack depth*/, (void*)NULL, 1, NULL );
