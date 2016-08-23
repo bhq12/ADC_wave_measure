@@ -20,9 +20,6 @@ void screenDrawTask( )
 	RIT128x96x4Init(1000000);
 	printTitles();
 
-	//int state = 1;
-	unsigned long adcVal;
-
 	for( ;; )
 	{
 		xSemaphoreTake(screenQueueCount, 100);
