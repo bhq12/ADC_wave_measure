@@ -13,8 +13,7 @@
 #include "semphr.h"
 
 xQueueHandle xScreenQueue;
-xSemaphoreHandle screenQueue;
-unsigned long period; //measured in microseconds
+xSemaphoreHandle screenQueueCount;
 
 void screenDrawTask( )
 {
@@ -26,12 +25,10 @@ void screenDrawTask( )
 
 	for( ;; )
 	{
-		xSemaphoreTake(screenQueue, 100);
+		xSemaphoreTake(screenQueueCount, 100);
 		debugPinOn(GPIO_PIN_6);
 		printStatus();
 		debugPinOff(GPIO_PIN_6);
-
-
 	}
 }
 
@@ -44,24 +41,18 @@ Calculation receiveFromQueue(xQueueHandle queue){
 
 void printStatus(){
 
-	float amplitude = 0.8;
-	float dutyCycle = 24.5;
-
 	if(getState()){
 		//square wave/adc1: frequency, period, duty cycle
 		RIT128x96x4StringDraw("ADC1: square wave", 10, 25, 'm');
-		printDutyCycle(dutyCycle);
 	}
 	else{
 		//sine wave/adc0: frequency, period, amplitude
 		RIT128x96x4StringDraw("ADC0: sine wave  ", 10, 25, 'm');
-		printAmplitude(amplitude);
 	}
 
 	Calculation calc = receiveFromQueue(xScreenQueue);
 	printCalculation(calc);
-	//printFrequency();
-	//printPeriod();
+
 
 }
 
@@ -88,59 +79,6 @@ void printCalculation(Calculation calc){
 		RIT128x96x4StringDraw(data, 75, 80, 'm');
 		memset(data, 0, sizeof data);
 	}
-}
-
-void printFrequency(){
-
-	Calculation calc = receiveFromQueue(xScreenQueue);
-
-
-	char message [8];
-
-
-	if(calc.frequency < 100000){
-		snprintf (message, sizeof(message), "%lu    ", calc.frequency);
-	}
-	else{
-		snprintf (message, sizeof(message), "%lu", calc.frequency);
-	}
-
-
-	if(calc.frequency != 0){
-		RIT128x96x4StringDraw(message, 75, 60, 'm');
-	}
-
-}
-
-void printPeriod(){
-	char message [8];
-
-	snprintf (message, sizeof(message), "%.2fus", period);
-	//IntMasterDisable();
-	RIT128x96x4StringDraw(message, 75, 70, 'm');
-	//IntMasterEnable();
-}
-void printAmplitude(float amplitude){
-
-	//IntMasterDisable();
-	RIT128x96x4StringDraw("Amplitude: ", 0, 80, 'm');
-	//IntMasterEnable();
-	//char message [8];
-
-	//snprintf (message, sizeof(message), "%.2fV", amplitude);
-	//RIT128x96x4StringDraw(message, 75, 80, 'm');
-}
-
-void printDutyCycle(float dutyCycle){
-
-	//IntMasterDisable();
-	RIT128x96x4StringDraw("Duty Cycle:", 0, 80, 'm');
-
-	//char message [8];
-
-	//snprintf (message, sizeof(message), "%.2f%  ", dutyCycle);
-	//RIT128x96x4StringDraw(message, 75, 80, 'm');
-	//IntMasterEnable();
 }
 
 void printTitles(float period){

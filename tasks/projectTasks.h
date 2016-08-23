@@ -8,7 +8,7 @@
 
 
 extern xQueueHandle xScreenQueue;
-extern xSemaphoreHandle screenQueue;
+extern xSemaphoreHandle screenQueueCount;
 
 extern void screenDrawTask();
 extern void processADCDataTask();

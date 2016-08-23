@@ -105,7 +105,7 @@ void processADCDataTask()
 			calc.amplitude = amplitude;
 			calc.dutyCycle = dutyCycle;
 			xQueueSend(xScreenQueue, &calc, 100);
-			xSemaphoreGive(screenQueue);
+			xSemaphoreGive(screenQueueCount);
 			frequency = 0;
 			frequencyCount = 0;
 			;
