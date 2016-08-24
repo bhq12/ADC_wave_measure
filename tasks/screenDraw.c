@@ -67,11 +67,13 @@ void printCalculation(Calculation calc){
 	memset(data, 0, sizeof data);
 
 	if(getState()){
+		RIT128x96x4StringDraw("Duty Cycle:", 0, 80, 'm');
 		snprintf (data, sizeof(data), "%lu%%   ", calc.dutyCycle);
 		RIT128x96x4StringDraw(data, 75, 80, 'm');
 		memset(data, 0, sizeof data);
 	}
 	else{
+		RIT128x96x4StringDraw("Amplitude: ", 0, 80, 'm');
 		snprintf (data, sizeof(data), "%lumV ", calc.amplitude);
 		RIT128x96x4StringDraw(data, 75, 80, 'm');
 		memset(data, 0, sizeof data);
