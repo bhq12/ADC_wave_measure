@@ -12,111 +12,95 @@
 #include "ADC.h"
 
 #define ADC_FREQUENCY 125000
-xQueueHandle xScreenQueue;
-xQueueHandle xSamplesQueue;
+
+void processBuffer();
+void calculateWaveProperties(unsigned long max, unsigned long min, unsigned long periods, unsigned long samples, unsigned long frequencyCount, unsigned long highSamples);
+void sendCalculation(unsigned long frequency, unsigned long period, unsigned long amplitude, unsigned long dutyCycle);
 
 void processADCDataTask()
 {
-	unsigned long adcVal;
-	unsigned long period;//microseconds
-	unsigned long frequency = 0;//hz
-	unsigned long periods = 0;
-	unsigned long  samples = 0;
-	unsigned long crossing = 0;
-	int isHigh;
-	int wasHigh;
-	unsigned long amplitude;
-	unsigned long long lastCrossing = 0;
-	int frequencyCount = 0;
-	int highSamples = 0;
-	unsigned long dutyCycle;
-
-	unsigned long max = 512;
-	unsigned long min = 512;
-	unsigned long average = 512;
-
 	while(1){
 		xSemaphoreTake(sampling, 100);
-		/*Calculation calc;
-
-		calc.frequency = 10000;
-		calc.period = 100;
-		calc.amplitude = 500;
-		calc.dutyCycle = 50;
-
-		xQueueSend(xScreenQueue, &calc, 100);
-		xSemaphoreGive(screenQueue);*/
-
-
 		if(!isCurrentlySampling()){
+			debugPinOn(GPIO_PIN_4);
 
-			while(adcBufferIndex > 0){
-				debugPinOn(GPIO_PIN_4);
-				adcVal = adcBuffer[adcBufferIndex];
-				samples++;
-
-				if(adcVal > max && !(adcVal > 1024)){
-					max = adcVal;
-				}
-				if(adcVal < min){
-					min = adcVal;
-				}
-
-				if(adcVal > average){
-					isHigh = true;
-					highSamples++;
-				}
-				else{
-					isHigh = false;
-				}
-
-				if(wasHigh && !isHigh){
-					//high to low transition
-					lastCrossing = crossing;
-					crossing = samples;
-					if(frequencyCount != 0){
-						//frequency += ADC_FREQUENCY / (crossing - lastCrossing);
-						periods += (crossing - lastCrossing);
-
-					}
-					frequencyCount++;
-
-
-				}
-
-				wasHigh = isHigh;
-				adcBufferIndex--;
-				average = (max + min) / 2;
-
-
-			}
-			dutyCycle = 100 * highSamples / samples;
-			//unsigned long periods = periods;
-			//periods = periods / (frequencyCount - 1);
-			float averagePeriod = (float)periods / (frequencyCount - 1);
-			float highAccuracyFrequency = ADC_FREQUENCY / averagePeriod;
-			//frequency = frequency / frequencyCount;
-			frequency = (unsigned long)highAccuracyFrequency;
-			period = 1000000 / frequency; //microseconds
-			amplitude = (max - min) * 1500 / 1024;
-			Calculation calc;
-			calc.frequency = frequency;
-			calc.period = period;
-			calc.amplitude = amplitude;
-			calc.dutyCycle = dutyCycle;
-			xQueueSend(xScreenQueue, &calc, 100);
-			xSemaphoreGive(screenQueueCount);
-			frequency = 0;
-			frequencyCount = 0;
-			;
-			samples = 0;
-			highSamples = 0;
-			max = 0;
-			min = 1024;
-			periods = 0;
+			processBuffer();
 			restartADCSampling();
+
 			debugPinOff(GPIO_PIN_4);
 		}
 	}
+}
+
+void processBuffer(){
+	unsigned long samples = 0;
+	unsigned long max = 0;
+	unsigned long min = 1024;
+	unsigned long average = 512;
+	unsigned long highSamples = 0;
+	unsigned long crossing = 0;
+	unsigned long frequencyCount = 0;
+	int isHigh = 0;
+	int wasHigh = 0;
+	unsigned long periods = 0;
+
+	while(adcBufferIndex > 0){
+
+		unsigned long adcVal = adcBuffer[adcBufferIndex];
+		samples++;
+
+		if(adcVal > max && !(adcVal > 1024)){
+			max = adcVal;
+		}
+		if(adcVal < min){
+			min = adcVal;
+		}
+
+		if(adcVal > average){
+			isHigh = true;
+			highSamples++;
+		}
+		else{
+			isHigh = false;
+		}
+
+		if(wasHigh && !isHigh){
+			//high to low transition has occurred
+			unsigned long lastCrossing = crossing;
+			crossing = samples;
+			if(frequencyCount != 0){
+				periods += (crossing - lastCrossing);
+			}
+			frequencyCount++;
+		}
+
+		wasHigh = isHigh;
+		adcBufferIndex--;
+		average = (max + min) / 2;
+	}
+	calculateWaveProperties(max, min, periods, samples, frequencyCount, highSamples);
+}
+
+void calculateWaveProperties(unsigned long max, unsigned long min, unsigned long periods, unsigned long samples, unsigned long frequencyCount, unsigned long highSamples){
+	unsigned long dutyCycle = 100 * highSamples / samples;
+
+
+	float averagePeriod = (float)periods / (frequencyCount - 1);
+	float highAccuracyFrequency = ADC_FREQUENCY / averagePeriod;
+
+	unsigned long frequency = (unsigned long)highAccuracyFrequency;
+	unsigned long period = 1000000 / frequency; //microseconds
+	unsigned long amplitude = (max - min) * 1500 / 1024;
+	sendCalculation(frequency, period, amplitude, dutyCycle);
+}
+
+void sendCalculation(unsigned long frequency, unsigned long period, unsigned long amplitude, unsigned long dutyCycle){
+	Calculation calc;
+	calc.frequency = frequency;
+	calc.period = period;
+	calc.amplitude = amplitude;
+	calc.dutyCycle = dutyCycle;
+	xQueueSend(xScreenQueue, &calc, 100);
+	xSemaphoreGive(screenQueueCount);
 }
 
